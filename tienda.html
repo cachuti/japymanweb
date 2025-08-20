@@ -95,24 +95,26 @@
             background: #3b82f6;
             padding: 10px 15px;
             border-radius: 8px;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.2s ease;
             z-index: 10;
-        }
-        .back-button:hover, .back-button:focus {
-            background-color: #0ea5e9;
-            outline: none;
+            outline: none; /* Elimina el outline por defecto en foco */
         }
         .back-button i {
             margin-right: 8px;
+        }
+        .back-button:hover, .back-button:focus {
+            background-color: #0ea5e9;
+            transform: scale(1.05);
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-    <a href="tienda.html" class="back-button" tabindex="0">
-        <i class="fas fa-arrow-left"></i> <!-- Icono de flecha izquierda de Font Awesome -->
-        <span>Volver a Tienda</span> <!-- Texto del botón -->
+    <!-- Botón de volver al menú principal -->
+    <a href="boxzonetv.html" class="back-button" tabindex="0">
+        <i class="fas fa-home"></i> <!-- Icono de casa para el menú principal -->
+        <span>Volver al Menú Principal</span>
     </a>
     <div class="container">
         <h1>📦 Tienda Chunito</h1>
@@ -126,7 +128,6 @@
     </div>
 
     <script>
-        // Configuración de Firebase (asegúrate de que estas credenciales sean correctas)
         const firebaseConfig = {
             apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
             authDomain: "chunito-d25bb.firebaseapp.com",
@@ -137,75 +138,63 @@
             appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
         };
 
-        // Inicializa Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Obtener referencias a los elementos del DOM
         const visor = document.getElementById("visor");
         const resultado = document.getElementById("resultado");
         const codigoInput = document.getElementById("codigoInput");
         const backButton = document.querySelector('.back-button');
 
-        // Escuchar mensajes en tiempo real del nodo "avisosTV" en Firebase
+        // Escuchar mensajes en tiempo real del nodo "avisosTV"
         db.ref("avisosTV").on("value", snapshot => {
             const texto = snapshot.val();
-            // Actualiza el contenido del visor, si no hay texto muestra "Sin mensajes."
             visor.textContent = texto || "Sin mensajes.";
         });
 
-        // Agrega un escuchador de eventos al input para la búsqueda en tiempo real
+        // La función de búsqueda se activará con cada carácter ingresado
         codigoInput.addEventListener('input', function() {
-            const codigo = this.value.trim(); // Obtiene el valor del input y elimina espacios en blanco
-            // Solo ejecuta la búsqueda si el código tiene la longitud exacta (3 caracteres)
+            const codigo = this.value.trim();
             if (codigo.length === 3) {
                 buscarCodigo(codigo);
             } else {
-                resultado.innerHTML = ""; // Limpia el resultado si el código no es de 3 caracteres
+                resultado.innerHTML = "";
             }
         });
 
-        // Función para buscar el código en Firebase
         function buscarCodigo(codigo) {
             db.ref("apk/" + codigo).once("value").then(snapshot => {
-                const data = snapshot.val(); // Obtiene los datos del snapshot
+                const data = snapshot.val();
                 if (data) {
-                    // Si se encuentra data, muestra la descripción y procede a descargar
                     resultado.innerHTML = `<p><strong>Encontrado:</strong> ${data.descripcion}</p>`;
                     descargar(data.url);
                 } else {
-                    // Si no se encuentra, muestra un mensaje
                     resultado.innerHTML = "<p>No se encontró ese código.</p>";
                 }
             });
         }
 
-        // Función para iniciar la descarga usando un intent de Android
         function descargar(url) {
-            // Construye la URL del intent para Android
             const intentURL = `intent://${url.replace(/^https?:\/\//, '')}#Intent;action=android.intent.action.VIEW;scheme=https;end`;
-            window.location.href = intentURL; // Redirige a la URL del intent
+            window.location.href = intentURL;
         }
 
-        // Lógica para navegación con control de TV (teclas de flecha y Enter)
+        // Lógica para navegación con control de TV
         document.addEventListener('keydown', function(e) {
-            const currentFocus = document.activeElement; // Elemento actualmente enfocado
+            const currentFocus = document.activeElement;
 
-            // Navegación con flechas arriba/abajo entre el botón de volver y el input
             if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                e.preventDefault(); // Previene el scroll por defecto
+                e.preventDefault();
                 if (currentFocus === backButton) {
-                    codigoInput.focus(); // Mueve el foco al input
+                    codigoInput.focus();
                 } else if (currentFocus === codigoInput) {
-                    backButton.focus(); // Mueve el foco al botón de volver
+                    backButton.focus();
                 }
             } else if (e.key === "Enter" || e.keyCode === 13) {
-                // Si se presiona Enter
                 if (currentFocus === codigoInput) {
-                    // Si el foco está en el input, la búsqueda ya se activa al escribir.
-                    // No es necesario añadir lógica extra aquí.
+                    // Si presionamos Enter en el input, no hacemos nada extra,
+                    // la búsqueda ya se activa al escribir.
                 } else if (currentFocus === backButton) {
-                    // Si el foco está en el botón de volver, simula un clic
                     window.location.href = backButton.href;
                 }
             }
