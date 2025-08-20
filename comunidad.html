@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Box Zone Chat</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 10px;
+      background: linear-gradient(to bottom right, #0d0d0d, #1a1a1a);
+      color: #f0f0f0;
+      font-size: 16px;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      margin: 5px 0;
+      color: #00ffff;
+      text-shadow: 1px 1px 4px #000;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: #aaa;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      border: 2px solid #444;
+      padding: 8px;
+      background: rgba(0,0,0,0.7);
+      margin-bottom: 6px;
+      border-radius: 10px;
+      height: 40vh;
+    }
+    .message-box {
+      border-bottom: 1px solid #2a2a2a;
+      padding: 6px 8px;
+      margin: 4px 0;
+      background-color: #1e1e1e;
+      border-radius: 6px;
+      transition: background 0.3s;
+      outline: none;
+    }
+    .message-box:focus {
+      outline: 2px solid #00ffff;
+      background: #2a2a2a;
+      box-shadow: 0 0 6px #00ffff;
+    }
+    button {
+      padding: 8px 14px;
+      font-size: 14px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background-color: #333;
+    }
+    button:focus {
+      outline: 2px solid #00ffff;
+      box-shadow: 0 0 6px #00ffff;
+    }
+    .eventos {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+    .evento {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      width: 100px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      color: white;
+    }
+    .evento:focus {
+      border-color: #00ffff;
+      background: #333;
+      outline: none;
+      box-shadow: 0 0 8px #00ffff;
+    }
+    .evento img {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 6px;
+    }
+    img.msg-img {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-top: 6px;
+      border: 1px solid #444;
+    }
+    button.link-btn {
+      margin-top: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Box Zone Chat</h1>
+
+  <div class="top-bar">
+    <span>Usuario: <strong id="nombreUsuario"></strong></span>
+    <span id="reloj"></span>
+  </div>
+
+  <div class="controls">
+    <button onclick="irAlPrimero()">NOVEDADES DEL DIA</button>
+  </div>
+
+  <div id="chat"></div>
+
+  <div class="eventos">
+    <a href="go:1" class="evento" tabindex="0">
+      <img src="https://cdn-icons-png.flaticon.com/512/64/64031.png" alt="TV1">
+      <span>Eventos 1</span>
+    </a>
+    <a href="go:2" class="evento" tabindex="0">
+      <img src="https://cdn-icons-png.flaticon.com/512/64/64031.png" alt="TV2">
+      <span>Eventos 2</span>
+    </a>
+    <a href="go:3" class="evento" tabindex="0">
+      <img src="https://cdn-icons-png.flaticon.com/512/64/64031.png" alt="TV3">
+      <span>Eventos 3</span>
+    </a>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSQ0Q7SMezq4iCSlHf_UsCmjZuA98OMAk",
+      authDomain: "box-zone-chat.firebaseapp.com",
+      databaseURL: "https://box-zone-chat-default-rtdb.firebaseio.com",
+      projectId: "box-zone-chat",
+      storageBucket: "box-zone-chat.appspot.com",
+      messagingSenderId: "336089943273",
+      appId: "1:336089943273:web:7e55f91d59b92fd6e13478"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const chatDiv = document.getElementById("chat");
+    const nombreUsuarioSpan = document.getElementById("nombreUsuario");
+
+    let usuario = localStorage.getItem("usuario") || "Anónimo";
+    nombreUsuarioSpan.textContent = usuario;
+
+    function actualizarReloj() {
+      const ahora = new Date();
+      const hora = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' });
+      document.getElementById("reloj").textContent = hora;
+    }
+    setInterval(actualizarReloj, 1000);
+    actualizarReloj();
+
+    function getFechaHoy() {
+      const hoy = new Date();
+      return hoy.toISOString().slice(0, 10);
+    }
+
+    function linkify(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, url => {
+        if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
+          return `<img class="msg-img" src="${url}" alt="imagen">`;
+        } else {
+          return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
+        }
+      });
+    }
+
+    let autoScroll = true;
+    chatDiv.addEventListener('scroll', () => {
+      const atBottom = chatDiv.scrollTop + chatDiv.clientHeight >= chatDiv.scrollHeight - 10;
+      autoScroll = atBottom;
+    });
+
+    function irAlPrimero() {
+      const fechaHoy = getFechaHoy();
+      const mensajesHoy = Array.from(chatDiv.children).filter(div => div.dataset.fecha === fechaHoy);
+      if (mensajesHoy.length > 0) {
+        mensajesHoy[0].scrollIntoView({behavior: 'smooth', block: 'start'});
+        mensajesHoy[0].focus();
+      } else {
+        alert("No hay mensajes para el día de hoy.");
+      }
+    }
+
+    function crearMensajeBox(data, key) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "message-box";
+      msgDiv.setAttribute("tabindex", "0");
+      msgDiv.dataset.key = key;
+      msgDiv.dataset.fecha = data.fecha || "";
+
+      const hora = data.hora ? ` <span style="color:#888; font-size:12px;">(${data.hora})</span>` : "";
+      msgDiv.innerHTML = `<strong>${data.usuario}</strong>: ${linkify(data.mensaje)}${hora}`;
+
+      return msgDiv;
+    }
+
+    db.ref('mensajes').limitToLast(100).on('child_added', snapshot => {
+      const data = snapshot.val();
+      const key = snapshot.key;
+      const msgDiv = crearMensajeBox(data, key);
+      chatDiv.appendChild(msgDiv);
+      if (autoScroll) {
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      }
+    });
+  </script>
+</body>
+</html>
