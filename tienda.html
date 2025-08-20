@@ -111,8 +111,8 @@
 </head>
 <body>
     <a href="tienda.html" class="back-button" tabindex="0">
-        <i class="fas fa-arrow-left"></i>
-        <span>Volver a Tienda</span>
+        <i class="fas fa-arrow-left"></i> <!-- Icono de flecha izquierda de Font Awesome -->
+        <span>Volver a Tienda</span> <!-- Texto del botón -->
     </a>
     <div class="container">
         <h1>📦 Tienda Chunito</h1>
@@ -126,6 +126,7 @@
     </div>
 
     <script>
+        // Configuración de Firebase (asegúrate de que estas credenciales sean correctas)
         const firebaseConfig = {
             apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
             authDomain: "chunito-d25bb.firebaseapp.com",
@@ -136,74 +137,84 @@
             appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
         };
 
+        // Inicializa Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Obtener referencias a los elementos del DOM
         const visor = document.getElementById("visor");
         const resultado = document.getElementById("resultado");
         const codigoInput = document.getElementById("codigoInput");
         const backButton = document.querySelector('.back-button');
 
-        // Escuchar mensajes en tiempo real del nodo "avisosTV"
+        // Escuchar mensajes en tiempo real del nodo "avisosTV" en Firebase
         db.ref("avisosTV").on("value", snapshot => {
             const texto = snapshot.val();
+            // Actualiza el contenido del visor, si no hay texto muestra "Sin mensajes."
             visor.textContent = texto || "Sin mensajes.";
         });
 
-        // La función de búsqueda se activará con cada carácter ingresado
+        // Agrega un escuchador de eventos al input para la búsqueda en tiempo real
         codigoInput.addEventListener('input', function() {
-            const codigo = this.value.trim();
-            // Solo se ejecuta si el código tiene la longitud exacta (3 caracteres)
+            const codigo = this.value.trim(); // Obtiene el valor del input y elimina espacios en blanco
+            // Solo ejecuta la búsqueda si el código tiene la longitud exacta (3 caracteres)
             if (codigo.length === 3) {
                 buscarCodigo(codigo);
             } else {
-                resultado.innerHTML = "";
+                resultado.innerHTML = ""; // Limpia el resultado si el código no es de 3 caracteres
             }
         });
 
+        // Función para buscar el código en Firebase
         function buscarCodigo(codigo) {
             db.ref("apk/" + codigo).once("value").then(snapshot => {
-                const data = snapshot.val();
+                const data = snapshot.val(); // Obtiene los datos del snapshot
                 if (data) {
+                    // Si se encuentra data, muestra la descripción y procede a descargar
                     resultado.innerHTML = `<p><strong>Encontrado:</strong> ${data.descripcion}</p>`;
                     descargar(data.url);
                 } else {
+                    // Si no se encuentra, muestra un mensaje
                     resultado.innerHTML = "<p>No se encontró ese código.</p>";
                 }
             });
         }
 
+        // Función para iniciar la descarga usando un intent de Android
         function descargar(url) {
+            // Construye la URL del intent para Android
             const intentURL = `intent://${url.replace(/^https?:\/\//, '')}#Intent;action=android.intent.action.VIEW;scheme=https;end`;
-            window.location.href = intentURL;
+            window.location.href = intentURL; // Redirige a la URL del intent
         }
 
-        // Lógica para navegación con control de TV
+        // Lógica para navegación con control de TV (teclas de flecha y Enter)
         document.addEventListener('keydown', function(e) {
-            const currentFocus = document.activeElement;
+            const currentFocus = document.activeElement; // Elemento actualmente enfocado
 
+            // Navegación con flechas arriba/abajo entre el botón de volver y el input
             if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                e.preventDefault();
+                e.preventDefault(); // Previene el scroll por defecto
                 if (currentFocus === backButton) {
-                    codigoInput.focus();
+                    codigoInput.focus(); // Mueve el foco al input
                 } else if (currentFocus === codigoInput) {
-                    backButton.focus();
+                    backButton.focus(); // Mueve el foco al botón de volver
                 }
             } else if (e.key === "Enter" || e.keyCode === 13) {
+                // Si se presiona Enter
                 if (currentFocus === codigoInput) {
-                    // Si presionamos Enter en el input, no hacemos nada extra,
-                    // la búsqueda ya se activa al escribir.
+                    // Si el foco está en el input, la búsqueda ya se activa al escribir.
+                    // No es necesario añadir lógica extra aquí.
                 } else if (currentFocus === backButton) {
+                    // Si el foco está en el botón de volver, simula un clic
                     window.location.href = backButton.href;
                 }
             }
         });
         
-        // Foco inicial en el botón de volver
+        // Foco inicial en el botón de volver al cargar la ventana
         window.onload = () => {
             backButton.focus();
         };
-
     </script>
 </body>
 </html>
