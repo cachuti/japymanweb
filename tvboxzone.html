@@ -216,7 +216,7 @@
                     div.className = "item";
                     div.setAttribute('tabindex', '0');
                     div.onclick = function() {
-                        reproducir(item.url); // <-- Reproduce en modal
+                        reproducir(item.url); // reproduce en modal web
                     };
 
                     var img = document.createElement("img");
@@ -244,9 +244,7 @@
         // Navegación con teclado / control remoto
         document.addEventListener('keydown', function(e) {
             if (modal.style.display === "flex") {
-                if (e.key === "Escape") {
-                    closeBtn.click();
-                }
+                if (e.key === "Escape") closeBtn.click();
                 return;
             }
 
