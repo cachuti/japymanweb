@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -100,10 +101,11 @@
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0,0,0,0.85);
+            background-color: rgba(0,0,0,0.9);
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            flex-direction: column;
         }
 
         #playerModal video {
@@ -117,9 +119,32 @@
             position: absolute;
             top: 20px;
             right: 40px;
-            font-size: 30px;
+            font-size: 40px;
             color: #fff;
             cursor: pointer;
+        }
+
+        #controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        #controls button {
+            font-size: 22px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #1f2937;
+            color: #fff;
+            transition: background 0.3s;
+        }
+
+        #controls button:focus {
+            outline: none;
+            background-color: #00aaff;
         }
     </style>
 </head>
@@ -130,7 +155,12 @@
     <!-- Modal del reproductor -->
     <div id="playerModal">
         <div id="closePlayer">&times;</div>
-        <video id="videoPlayer" controls></video>
+        <video id="videoPlayer" controls playsinline></video>
+        <div id="controls">
+            <button id="playBtn">Reproducir</button>
+            <button id="pauseBtn">Pausar</button>
+            <button id="stopBtn">Detener</button>
+        </div>
     </div>
 
     <!-- Firebase -->
@@ -163,12 +193,19 @@
         var modal = document.getElementById("playerModal");
         var video = document.getElementById("videoPlayer");
         var closeBtn = document.getElementById("closePlayer");
+        var playBtn = document.getElementById("playBtn");
+        var pauseBtn = document.getElementById("pauseBtn");
+        var stopBtn = document.getElementById("stopBtn");
 
         closeBtn.onclick = function() {
             video.pause();
             video.src = "";
             modal.style.display = "none";
         };
+
+        playBtn.onclick = () => video.play();
+        pauseBtn.onclick = () => video.pause();
+        stopBtn.onclick = () => { video.pause(); video.currentTime = 0; };
 
         function reproducir(url) {
             modal.style.display = "flex";
@@ -183,6 +220,7 @@
                 video.src = url;
                 video.play();
             }
+            playBtn.focus(); // foco inicial en botón play
         }
 
         ref.on("value", function(snapshot) {
@@ -245,6 +283,18 @@
         document.addEventListener('keydown', function(e) {
             if (modal.style.display === "flex") {
                 if (e.key === "Escape") closeBtn.click();
+                // Navegación entre botones del reproductor
+                else if (e.key === "ArrowRight") {
+                    if (document.activeElement === playBtn) pauseBtn.focus();
+                    else if (document.activeElement === pauseBtn) stopBtn.focus();
+                    else if (document.activeElement === stopBtn) playBtn.focus();
+                }
+                else if (e.key === "ArrowLeft") {
+                    if (document.activeElement === stopBtn) pauseBtn.focus();
+                    else if (document.activeElement === pauseBtn) playBtn.focus();
+                    else if (document.activeElement === playBtn) stopBtn.focus();
+                }
+                else if (e.key === "Enter") document.activeElement.click();
                 return;
             }
 
