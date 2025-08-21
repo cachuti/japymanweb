@@ -100,9 +100,7 @@ ref.on("value", snapshot=>{
     }
 });
 
-// ---------------------------------------------------------------------------------------
-// **NUEVA SECCIÓN: Navegación con teclado / control remoto**
-// ---------------------------------------------------------------------------------------
+// Navegación con teclado / control remoto
 document.addEventListener('keydown', e=>{
     if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
     var nextFila=filaFocus;
@@ -122,7 +120,7 @@ document.addEventListener('keydown', e=>{
         if(currentElement){
             var url = currentElement.getAttribute('data-url');
             if (url) {
-                // Aquí usamos la interfaz de Android para pasar la URL a ExoPlayer
+                // Aquí se llama a la interfaz de Android
                 Android.playVideo(url);
             }
         }
