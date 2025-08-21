@@ -28,36 +28,14 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
 .item img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; }
 .item p { margin: 12px 0 0; font-size: 16px; font-weight: 400; color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .item:focus { outline: none; transform: scale(1.15); border: 4px solid #00aaff; z-index: 10; }
-
-/* Modal reproductor */
-#playerModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
-#playerModal video { width: 80%; max-width: 1280px; height: auto; border-radius: 12px; }
-#closePlayer { position: absolute; top: 20px; right: 40px; font-size: 40px; color: #fff; cursor: pointer; }
-#controls { margin-top: 15px; display: flex; gap: 20px; justify-content: center; }
-#controls button { font-size: 22px; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; background-color: #1f2937; color: #fff; transition: background 0.3s; }
-#controls button:focus { outline: none; background-color: #00aaff; }
 </style>
 </head>
 <body>
 <h1>Box Zone TV</h1>
 <div id="contenido"></div>
 
-<!-- Modal reproductor -->
-<div id="playerModal">
-    <div id="closePlayer">&times;</div>
-    <video id="videoPlayer" controls playsinline muted></video>
-    <div id="controls">
-        <button id="playBtn">Reproducir</button>
-        <button id="pauseBtn">Pausar</button>
-        <button id="stopBtn">Detener</button>
-    </div>
-</div>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<!-- HLS.js -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <script>
 // Configuración Firebase
@@ -79,35 +57,6 @@ var estructura = [];
 var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
-
-// Modal
-var modal = document.getElementById("playerModal");
-var video = document.getElementById("videoPlayer");
-var closeBtn = document.getElementById("closePlayer");
-var playBtn = document.getElementById("playBtn");
-var pauseBtn = document.getElementById("pauseBtn");
-var stopBtn = document.getElementById("stopBtn");
-
-closeBtn.onclick = function(){ video.pause(); video.src=""; modal.style.display="none"; };
-playBtn.onclick = ()=>video.play();
-pauseBtn.onclick = ()=>video.pause();
-stopBtn.onclick = ()=>{ video.pause(); video.currentTime=0; };
-
-// Función reproducir
-function reproducir(url){
-    modal.style.display="flex";
-    video.muted=false;
-    if(url.endsWith(".m3u8") && Hls.isSupported()){
-        var hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, ()=>video.play());
-    }else{
-        video.src=url;
-        video.play();
-    }
-    playBtn.focus();
-}
 
 // Cargar contenido desde Firebase
 ref.on("value", snapshot=>{
@@ -132,7 +81,7 @@ ref.on("value", snapshot=>{
             var div=document.createElement("div");
             div.className="item";
             div.setAttribute('tabindex','0');
-            div.onclick=()=>reproducir(item.url);
+            div.setAttribute('data-url', item.url); // Agregamos el atributo 'data-url'
             var img=document.createElement("img");
             img.src=item.imagen;
             img.loading="lazy";
@@ -151,19 +100,6 @@ ref.on("value", snapshot=>{
 
 // Navegación con teclado / control remoto
 document.addEventListener('keydown', e=>{
-    if(modal.style.display==="flex"){
-        if(e.key==="Escape") closeBtn.click();
-        else if(e.key==="ArrowRight"){
-            if(document.activeElement===playBtn) pauseBtn.focus();
-            else if(document.activeElement===pauseBtn) stopBtn.focus();
-            else if(document.activeElement===stopBtn) playBtn.focus();
-        }else if(e.key==="ArrowLeft"){
-            if(document.activeElement===stopBtn) pauseBtn.focus();
-            else if(document.activeElement===pauseBtn) playBtn.focus();
-            else if(document.activeElement===playBtn) stopBtn.focus();
-        }else if(e.key==="Enter") document.activeElement.click();
-        return;
-    }
     if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
     var nextFila=filaFocus; var nextItem=itemFocus;
     if(e.key==="ArrowRight") nextItem=Math.min(itemFocus+1, itemsFocus[filaFocus].length-1);
@@ -178,7 +114,13 @@ document.addEventListener('keydown', e=>{
         else nextItem=itemFocus;
     }else if(e.key==="Enter"||e.key===" "||e.keyCode===13){
         var currentElement = itemsFocus[filaFocus][itemFocus];
-        if(currentElement) currentElement.click();
+        if(currentElement){
+            var url = currentElement.getAttribute('data-url');
+            if (url) {
+                // Aquí usamos la interfaz de Android para pasar la URL a ExoPlayer
+                Android.playVideo(url);
+            }
+        }
         e.preventDefault();
         return;
     }else return;
