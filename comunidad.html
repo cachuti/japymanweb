@@ -165,11 +165,13 @@
       return hoy.toISOString().slice(0, 10);
     }
 
+    // Función modificada para aplicar el tamaño a las imágenes
     function linkify(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.replace(urlRegex, url => {
         if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
-          return `<img class="msg-img" src="${url}" alt="imagen">`;
+          // Aplicamos los estilos de tamaño aquí
+          return `<img class="msg-img" src="${url}" alt="imagen" style="width: 180px; height: 150px;">`;
         } else {
           return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
         }
@@ -212,7 +214,7 @@
       const msgDiv = crearMensajeBox(data, key);
       chatDiv.appendChild(msgDiv);
       if (autoScroll) {
-        chatDiv.scrollTop = chatDiv.scrollHeight;
+        chatDiv.scrollTop = chat.scrollHeight;
       }
       
       // Aseguramos que el primer mensaje tenga foco al cargar la página
