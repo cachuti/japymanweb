@@ -58,12 +58,12 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
-// Nueva función para manejar el clic y la reproducción
+// Nueva función para manejar el clic y la redirección
 function handleItemClick(element) {
     var url = element.getAttribute('data-url');
     if (url) {
-        // Llama a la interfaz de Android para reproducir el video
-        Android.playVideo(url);
+        // Redirige a la URL del video en una nueva pestaña/página
+        window.location.href = url;
     }
 }
 
@@ -142,7 +142,7 @@ document.addEventListener('keydown', e=>{
     } else if(e.key==="Enter"||e.key===" "||e.keyCode===13){
         var currentElement = itemsFocus[filaFocus][itemFocus];
         if(currentElement){
-            // Llama a la nueva función para reproducir
+            // Llama a la nueva función para redirigir
             handleItemClick(currentElement);
         }
         e.preventDefault();
