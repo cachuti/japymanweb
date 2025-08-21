@@ -131,7 +131,7 @@
     <span id="reloj"></span>
   </div>
 
-  <div id="chat"></div>
+  <div id="chat" role="region" aria-label="Visor del chat"></div>
 
   <script>
     const firebaseConfig = {
@@ -214,7 +214,46 @@
       if (autoScroll) {
         chatDiv.scrollTop = chatDiv.scrollHeight;
       }
+      
+      // Aseguramos que el primer mensaje tenga foco al cargar la página
+      if (chatDiv.children.length === 1) {
+        chatDiv.children[0].focus();
+      }
     });
+
+    // Nueva función para manejar el foco de teclado
+    function manejarFocoEnChat(e) {
+      const elementosVisibles = Array.from(chatDiv.querySelectorAll('.message-box, button.link-btn')).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
+      const primerElemento = elementosVisibles[0];
+      const ultimoElemento = elementosVisibles[elementosVisibles.length - 1];
+
+      if (!primerElemento || !ultimoElemento) {
+        return; // No hay elementos para enfocar en el chat
+      }
+
+      const estaEnElChat = chatDiv.contains(document.activeElement);
+
+      if (e.key === "Tab" && !e.shiftKey) { // Se pulsa Tab hacia adelante
+        if (!estaEnElChat) {
+          e.preventDefault();
+          primerElemento.focus();
+        } else if (document.activeElement === ultimoElemento) {
+          e.preventDefault();
+          primerElemento.focus();
+        }
+      } else if (e.key === "Tab" && e.shiftKey) { // Se pulsa Shift + Tab hacia atrás
+        if (!estaEnElChat) {
+          e.preventDefault();
+          ultimoElemento.focus();
+        } else if (document.activeElement === primerElemento) {
+          e.preventDefault();
+          ultimoElemento.focus();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', manejarFocoEnChat);
+
   </script>
 </body>
 </html>
