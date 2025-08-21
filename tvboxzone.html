@@ -58,9 +58,20 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
+// 🔹 Recuperar última posición guardada al cargar la página
+if(localStorage.getItem("filaFocus") !== null){
+    filaFocus = parseInt(localStorage.getItem("filaFocus"));
+}
+if(localStorage.getItem("itemFocus") !== null){
+    itemFocus = parseInt(localStorage.getItem("itemFocus"));
+}
+
 function handleItemClick(element) {
     var url = element.getAttribute('data-url');
     if (url) {
+        // 🔹 Guardar posición actual antes de salir
+        localStorage.setItem("filaFocus", filaFocus);
+        localStorage.setItem("itemFocus", itemFocus);
         window.location.href = url;
     }
 }
@@ -69,21 +80,19 @@ ref.on("value", snapshot=>{
     contenedor.innerHTML="";
     estructura=[];
     itemsFocus=[];
-    filaFocus=0;
-    itemFocus=0;
     snapshot.forEach(child=>{
         var data = child.val();
         if(data.subtitulo) estructura.push({subtitulo:data.subtitulo, items:[]});
         else if(data.titulo && estructura.length>0) estructura[estructura.length-1].items.push(data);
     });
-    estructura.forEach(bloque=>{
+    estructura.forEach((bloque,bIndex)=>{
         var subtitulo=document.createElement("h2");
         subtitulo.textContent=bloque.subtitulo;
         contenedor.appendChild(subtitulo);
         var fila=document.createElement("div");
         fila.className="fila";
         var itemsEnFila=[];
-        bloque.items.forEach(item=>{
+        bloque.items.forEach((item,iIndex)=>{
             var div=document.createElement("div");
             div.className="item";
             div.setAttribute('tabindex','0');
@@ -99,14 +108,23 @@ ref.on("value", snapshot=>{
             itemsEnFila.push(div);
             
             div.addEventListener('click', function() {
+                // Guardamos el índice actual en variables
+                filaFocus = bIndex;
+                itemFocus = iIndex;
                 handleItemClick(this);
             });
         });
         contenedor.appendChild(fila);
         itemsFocus.push(itemsEnFila);
     });
-    if(itemsFocus.length>0 && itemsFocus[0].length>0) {
-      itemsFocus[0][0].focus();
+
+    // 🔹 Restaurar foco en la posición guardada
+    if(itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]){
+        itemsFocus[filaFocus][itemFocus].focus();
+    } else if(itemsFocus.length>0 && itemsFocus[0].length>0){
+        itemsFocus[0][0].focus();
+        filaFocus = 0;
+        itemFocus = 0;
     }
 });
 
