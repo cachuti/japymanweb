@@ -58,6 +58,15 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
+// Nueva función para manejar el clic y la reproducción
+function handleItemClick(element) {
+    var url = element.getAttribute('data-url');
+    if (url) {
+        // Llama a la interfaz de Android para reproducir el video
+        Android.playVideo(url);
+    }
+}
+
 // Cargar contenido desde Firebase
 ref.on("value", snapshot=>{
     contenedor.innerHTML="";
@@ -91,6 +100,11 @@ ref.on("value", snapshot=>{
             div.appendChild(desc);
             fila.appendChild(div);
             itemsEnFila.push(div);
+            
+            // Añadir un evento de clic para la navegación con mouse/touch
+            div.addEventListener('click', function() {
+                handleItemClick(this);
+            });
         });
         contenedor.appendChild(fila);
         itemsFocus.push(itemsEnFila);
@@ -100,7 +114,7 @@ ref.on("value", snapshot=>{
     }
 });
 
-// Lógica de Navegación del Teclado/Control Remoto (importada de tu HTML de referencia)
+// Lógica de Navegación del Teclado/Control Remoto
 document.addEventListener('keydown', e=>{
     if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
     var nextFila=filaFocus;
@@ -128,11 +142,8 @@ document.addEventListener('keydown', e=>{
     } else if(e.key==="Enter"||e.key===" "||e.keyCode===13){
         var currentElement = itemsFocus[filaFocus][itemFocus];
         if(currentElement){
-            var url = currentElement.getAttribute('data-url');
-            if (url) {
-                // Aquí usamos la interfaz de Android
-                Android.playVideo(url);
-            }
+            // Llama a la nueva función para reproducir
+            handleItemClick(currentElement);
         }
         e.preventDefault();
         return;
