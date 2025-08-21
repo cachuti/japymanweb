@@ -101,7 +101,6 @@ ref.on("value", snapshot=>{
             div.setAttribute('data-url', item.url);
             
             var img=document.createElement("img");
-            // Eliminamos la lógica de caché y el atributo "loading"
             img.src = item.imagen;
             
             var desc=document.createElement("p");
@@ -123,9 +122,10 @@ ref.on("value", snapshot=>{
     });
 
     // 🔹 Restaurar foco en la posición guardada
-    if(itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]){
+    if(itemsFocus.length > 0 && itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]){
         itemsFocus[filaFocus][itemFocus].focus();
-    } else if(itemsFocus.length>0 && itemsFocus[0].length>0){
+    } else if(itemsFocus.length > 0 && itemsFocus[0].length > 0) {
+        // Si no hay posición guardada o es inválida, enfoca el primer elemento
         itemsFocus[0][0].focus();
         filaFocus = 0;
         itemFocus = 0;
