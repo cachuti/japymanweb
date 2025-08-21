@@ -72,7 +72,7 @@ function handleItemClick(element) {
         // 🔹 Guardar posición actual antes de salir
         localStorage.setItem("filaFocus", filaFocus);
         localStorage.setItem("itemFocus", itemFocus);
-        window.location.href = url;
+        location.replace(url); // ✅ cambio aquí
     }
 }
 
