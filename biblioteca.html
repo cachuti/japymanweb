@@ -37,30 +37,6 @@
             position: relative;
         }
 
-        /* ESTILOS AÑADIDOS PARA EL BOTÓN DE VOLVER */
-        .back-button {
-            position: absolute;
-            left: 20px;
-            top: 25px;
-            color: #fff;
-            font-size: 24px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            background: #3b82f6;
-            padding: 10px 15px;
-            border-radius: 8px;
-            transition: background-color 0.2s ease;
-        }
-
-        .back-button:hover {
-            background-color: #0ea5e9;
-        }
-
-        .back-button i {
-            margin-right: 8px;
-        }
-
         h1 {
             font-size: 40px;
             margin-bottom: 25px;
@@ -291,9 +267,6 @@
 </head>
 <body>
     <div class="top-section">
-        <a href="categorias.html" class="back-button" tabindex="0">
-            <i class="fas fa-arrow-left"></i>Volver
-        </a>
         <h1 id="main-title">Box Zone Películas</h1>
         <div id="category-carousel"></div>
     </div>
@@ -503,15 +476,6 @@
                     return;
                 }
                 
-                // Mover el foco a la fila superior si se presiona la tecla de flecha hacia arriba
-                if (e.key === "ArrowUp" && currentFocus.closest('.content-section')) {
-                    const backButton = document.querySelector('.back-button');
-                    if (backButton) {
-                        backButton.focus();
-                        return;
-                    }
-                }
-
                 if (isFocusOnCategoryCarousel) {
                     if (e.key === "ArrowRight") {
                         let currentIndex = categoryButtons.findIndex(btn => btn === currentFocus);
@@ -553,7 +517,7 @@
                 if (nextElement) {
                     nextElement.focus();
                     if (nextElement.closest('#category-carousel')) {
-                            nextElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                                nextElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                     }
                 } else if (isFocusOnMovieGrid && (nextFila !== filaFocus || nextItem !== itemFocus)) {
                     filaFocus = nextFila;
@@ -567,12 +531,13 @@
             }
         });
 
-        // Configurar el foco inicial en el botón "Volver" al cargar la página
+        // Configurar el foco inicial en el primer botón de categoría al cargar la página
         window.onload = () => {
-            document.querySelector('.back-button').focus();
+            if (categoryButtons.length > 0) {
+                categoryButtons[0].focus();
+            }
         };
 
     </script>
 </body>
-
 </html>
