@@ -34,8 +34,8 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
 <h1>Box Zone TV</h1>
 <div id="contenido"></div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
 
 <script>
 // Configuración Firebase
@@ -100,33 +100,47 @@ ref.on("value", snapshot=>{
     }
 });
 
-// Navegación con teclado / control remoto
+// Lógica de Navegación del Teclado/Control Remoto (importada de tu HTML de referencia)
 document.addEventListener('keydown', e=>{
     if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
     var nextFila=filaFocus;
     var nextItem=itemFocus;
-    if(e.key==="ArrowRight") nextItem=Math.min(itemFocus+1, itemsFocus[filaFocus].length-1);
-    else if(e.key==="ArrowLeft") nextItem=Math.max(itemFocus-1,0);
-    else if(e.key==="ArrowDown"){
+    
+    // Navegación por flechas
+    if(e.key==="ArrowRight") {
+        nextItem=Math.min(itemFocus+1, itemsFocus[filaFocus].length-1);
+    } else if(e.key==="ArrowLeft") {
+        nextItem=Math.max(itemFocus-1,0);
+    } else if(e.key==="ArrowDown") {
         nextFila=Math.min(filaFocus+1, itemsFocus.length-1);
-        if(itemsFocus[nextFila] && itemFocus>=itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1;
-        else nextItem=itemFocus;
-    }else if(e.key==="ArrowUp"){
+        if(itemsFocus[nextFila] && itemFocus>=itemsFocus[nextFila].length) {
+            nextItem=itemsFocus[nextFila].length-1;
+        } else {
+            nextItem=itemFocus;
+        }
+    } else if(e.key==="ArrowUp") {
         nextFila=Math.max(filaFocus-1,0);
-        if(itemsFocus[nextFila] && itemFocus>=itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1;
-        else nextItem=itemFocus;
-    }else if(e.key==="Enter"||e.key===" "||e.keyCode===13){
+        if(itemsFocus[nextFila] && itemFocus>=itemsFocus[nextFila].length) {
+            nextItem=itemsFocus[nextFila].length-1;
+        } else {
+            nextItem=itemFocus;
+        }
+    } else if(e.key==="Enter"||e.key===" "||e.keyCode===13){
         var currentElement = itemsFocus[filaFocus][itemFocus];
         if(currentElement){
             var url = currentElement.getAttribute('data-url');
             if (url) {
-                // Aquí se llama a la interfaz de Android
+                // Aquí usamos la interfaz de Android
                 Android.playVideo(url);
             }
         }
         e.preventDefault();
         return;
-    }else return;
+    } else {
+        return;
+    }
+
+    // Aplica el foco y el scroll si hay movimiento
     filaFocus=nextFila;
     itemFocus=nextItem;
     var nextElement = itemsFocus[filaFocus][itemFocus];
