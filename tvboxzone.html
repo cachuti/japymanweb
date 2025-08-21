@@ -78,30 +78,6 @@ function handleItemClick(element) {
     }
 }
 
-// 🔹 Función para cargar y cachear imágenes
-function cargarImagen(imgElement, url) {
-    const cachedImage = localStorage.getItem(url);
-    if (cachedImage) {
-        // Si la imagen está en el caché, la carga al instante
-        imgElement.src = cachedImage;
-    } else {
-        // Si no está, la descarga y la guarda en el caché
-        const image = new Image();
-        image.crossOrigin = "Anonymous"; // Esto es importante para evitar errores CORS
-        image.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = image.width;
-            canvas.height = image.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(image, 0, 0);
-            const dataURL = canvas.toDataURL('image/png'); // O 'image/jpeg' si es necesario
-            localStorage.setItem(url, dataURL);
-            imgElement.src = dataURL;
-        };
-        image.src = url;
-    }
-}
-
 ref.on("value", snapshot=>{
     contenedor.innerHTML="";
     estructura=[];
@@ -125,11 +101,9 @@ ref.on("value", snapshot=>{
             div.setAttribute('data-url', item.url);
             
             var img=document.createElement("img");
-            img.loading="lazy";
+            // Eliminamos la lógica de caché y el atributo "loading"
+            img.src = item.imagen;
             
-            // 🔹 Llamada a la nueva función de carga
-            cargarImagen(img, item.imagen);
-
             var desc=document.createElement("p");
             desc.textContent=item.descripcion||item.titulo||"";
             div.appendChild(img);
