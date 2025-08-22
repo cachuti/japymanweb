@@ -34,6 +34,13 @@
       margin-bottom: 6px;
       color: #aaa;
     }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
     #chat {
       flex: 1;
       overflow-y: auto;
@@ -58,28 +65,28 @@
       background: #2a2a2a;
       box-shadow: 0 0 6px #00ffff;
     }
+    button {
+      padding: 8px 14px;
+      font-size: 14px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background-color: #333;
+    }
+    button:focus {
+      outline: 2px solid #00ffff;
+      box-shadow: 0 0 6px #00ffff;
+    }
     img.msg-img {
       max-width: 100%;
       border-radius: 6px;
       margin-top: 6px;
       border: 1px solid #444;
-    }
-    button.link-btn {
-      display: block;
-      width: 100%;
-      text-align: center;
-      padding: 12px 0;
-      margin: 6px 0;
-      font-size: 14px;
-      background: #222;
-      color: #fff;
-      border-radius: 6px;
-      border: 1px solid #444;
-      cursor: pointer;
-    }
-    button.link-btn:focus {
-      outline: 2px solid #00ffff;
-      box-shadow: 0 0 6px #00ffff;
     }
   </style>
 </head>
@@ -91,7 +98,11 @@
     <span id="reloj"></span>
   </div>
 
-  <div id="chat" tabindex="0" role="region" aria-label="Visor del chat"></div>
+  <div class="controls">
+    <button onclick="irAlPrimero()">NOVEDADES DEL DIA</button>
+  </div>
+
+  <div id="chat" tabindex="0"></div>
 
   <script>
     const firebaseConfig = {
@@ -131,9 +142,15 @@
         if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
           return `<img class="msg-img" src="${url}" alt="imagen">`;
         } else {
-          return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
+          // Botón de abrir contenido interno
+          return `<button class="link-btn" onclick="descargarArchivo('${url}')" tabindex="0">✓ Abrir contenido</button>`;
         }
       });
+    }
+
+    function descargarArchivo(url) {
+      // Redirige al link de descarga como en TV Box/Android TV
+      window.location.href = url;
     }
 
     let autoScroll = true;
@@ -171,23 +188,9 @@
       const key = snapshot.key;
       const msgDiv = crearMensajeBox(data, key);
       chatDiv.appendChild(msgDiv);
-      if (autoScroll) {
-        chatDiv.scrollTop = chatDiv.scrollHeight;
-      }
-    });
-
-    // Mantener el foco siempre en el visor
-    chatDiv.focus();
-    chatDiv.addEventListener('keydown', e => {
-      if (e.key === "ArrowDown") {
-        const next = document.activeElement.nextElementSibling;
-        if (next) next.focus();
-        e.preventDefault();
-      } else if (e.key === "ArrowUp") {
-        const prev = document.activeElement.previousElementSibling;
-        if (prev) prev.focus();
-        e.preventDefault();
-      }
+      if (autoScroll) chatDiv.scrollTop = chatDiv.scrollHeight;
+      // Auto foco en visor
+      chatDiv.focus();
     });
   </script>
 </body>
