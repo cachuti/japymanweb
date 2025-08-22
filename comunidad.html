@@ -6,7 +6,9 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
@@ -65,6 +67,20 @@
       background: #2a2a2a;
       box-shadow: 0 0 6px #00ffff;
     }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 14px;
+      border: 2px solid #555;
+      background: #1a1a1a;
+      color: #fff;
+      width: 100%;
+      border-radius: 8px;
+      outline: none;
+    }
+    input[type="text"]:focus {
+      border-color: #00ffff;
+      box-shadow: 0 0 6px #00ffff;
+    }
     button {
       padding: 8px 14px;
       font-size: 14px;
@@ -82,11 +98,43 @@
       outline: 2px solid #00ffff;
       box-shadow: 0 0 6px #00ffff;
     }
-    img.msg-img {
-      max-width: 100%;
-      border-radius: 6px;
+    img {
+      width: 150px;
+      height: 150px;
       margin-top: 6px;
+      border-radius: 6px;
+      object-fit: cover;
       border: 1px solid #444;
+    }
+    .eventos {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+    .evento {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      width: 100px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      color: white;
+    }
+    .evento:focus {
+      border-color: #00ffff;
+      background: #333;
+      outline: none;
+      box-shadow: 0 0 8px #00ffff;
+    }
+    .evento img {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 6px;
     }
   </style>
 </head>
@@ -100,9 +148,27 @@
 
   <div class="controls">
     <button onclick="irAlPrimero()">NOVEDADES DEL DIA</button>
+    <!-- Botón de escribir eliminado -->
   </div>
 
-  <div id="chat" tabindex="0"></div>
+  <div id="chat"></div>
+
+  <!-- Input eliminado -->
+
+  <div class="eventos">
+    <a href="go:1" class="evento" tabindex="0">
+      <img src="https://cdn-icons-png.flaticon.com/512/64/64031.png" alt="TV1">
+      <span>Eventos 1</span>
+    </a>
+    <a href="go:2" class="evento" tabindex="0">
+      <img src="https://cdn-icons-png.flaticon.com/512/64/64031.png" alt="TV2">
+      <span>Eventos 2</span>
+    </a>
+    <a href="go:3" class="evento" tabindex="0">
+      <img src="https://cdn-icons-png.flaticon.com/512/64/64031.png" alt="TV3">
+      <span>Eventos 3</span>
+    </a>
+  </div>
 
   <script>
     const firebaseConfig = {
@@ -136,14 +202,13 @@
       return hoy.toISOString().slice(0, 10);
     }
 
-    // ---- LINKIFY CORREGIDO ----
     function linkify(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.replace(urlRegex, url => {
         if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
-          return `<img class="msg-img" src="${url}" alt="imagen" tabindex="0">`;
+          return `<img src="${url}" alt="imagen">`;
         } else {
-          return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
+          return `<button onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
         }
       });
     }
@@ -183,8 +248,9 @@
       const key = snapshot.key;
       const msgDiv = crearMensajeBox(data, key);
       chatDiv.appendChild(msgDiv);
-      if (autoScroll) chatDiv.scrollTop = chatDiv.scrollHeight;
-      chatDiv.focus();
+      if (autoScroll) {
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      }
     });
   </script>
 </body>
