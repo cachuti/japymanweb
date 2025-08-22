@@ -136,21 +136,16 @@
       return hoy.toISOString().slice(0, 10);
     }
 
+    // ---- LINKIFY CORREGIDO ----
     function linkify(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.replace(urlRegex, url => {
         if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
-          return `<img class="msg-img" src="${url}" alt="imagen">`;
+          return `<img class="msg-img" src="${url}" alt="imagen" tabindex="0">`;
         } else {
-          // Botón de abrir contenido interno
-          return `<button class="link-btn" onclick="descargarArchivo('${url}')" tabindex="0">✓ Abrir contenido</button>`;
+          return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
         }
       });
-    }
-
-    function descargarArchivo(url) {
-      // Redirige al link de descarga como en TV Box/Android TV
-      window.location.href = url;
     }
 
     let autoScroll = true;
@@ -189,7 +184,6 @@
       const msgDiv = crearMensajeBox(data, key);
       chatDiv.appendChild(msgDiv);
       if (autoScroll) chatDiv.scrollTop = chatDiv.scrollHeight;
-      // Auto foco en visor
       chatDiv.focus();
     });
   </script>
