@@ -117,9 +117,20 @@
       margin-top: 6px;
       border: 1px solid #444;
     }
-    button.link-btn {
+    a.link-btn {
       margin-top: 4px;
       font-size: 14px;
+      display: inline-block;
+      padding: 8px 12px;
+      background: #222;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      border: 1px solid #444;
+    }
+    a.link-btn:focus {
+      outline: 2px solid #00ffff;
+      box-shadow: 0 0 6px #00ffff;
     }
   </style>
 </head>
@@ -165,14 +176,15 @@
       return hoy.toISOString().slice(0, 10);
     }
 
-    // --- AQUÍ ESTÁ LA FUNCIÓN MODIFICADA ---
+    // --- FUNCIÓN linkify MODIFICADA PARA DESCARGA DIRECTA ---
     function linkify(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.replace(urlRegex, url => {
         if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
           return `<img class="msg-img" src="${url}" alt="imagen" style="width: 180px; height: 150px;">`;
         } else {
-          return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
+          // Enlace de descarga directa
+          return `<a href="${url}" download class="link-btn" tabindex="0">✓ Descargar</a>`;
         }
       });
     }
@@ -222,7 +234,7 @@
     });
 
     function manejarFocoEnChat(e) {
-      const elementosVisibles = Array.from(chatDiv.querySelectorAll('.message-box, button.link-btn')).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
+      const elementosVisibles = Array.from(chatDiv.querySelectorAll('.message-box, a.link-btn')).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
       const primerElemento = elementosVisibles[0];
       const ultimoElemento = elementosVisibles[elementosVisibles.length - 1];
 
