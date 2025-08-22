@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Box Zone Comunidad</title>
+  <title>Box Zone Chat</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
@@ -64,22 +64,22 @@
       margin-top: 6px;
       border: 1px solid #444;
     }
-    a.link-btn {
+    button.link-btn {
       display: block;
       width: 100%;
       text-align: center;
       padding: 12px 0;
       margin: 6px 0;
-      font-size: 18px;
+      font-size: 14px;
       background: #222;
-      color: #00ffff;
-      border-radius: 8px;
-      border: 2px solid #444;
-      text-decoration: none;
+      color: #fff;
+      border-radius: 6px;
+      border: 1px solid #444;
+      cursor: pointer;
     }
-    a.link-btn:focus {
+    button.link-btn:focus {
       outline: 2px solid #00ffff;
-      box-shadow: 0 0 8px #00ffff;
+      box-shadow: 0 0 6px #00ffff;
     }
   </style>
 </head>
@@ -91,7 +91,7 @@
     <span id="reloj"></span>
   </div>
 
-  <div id="chat" role="region" aria-label="Visor del chat"></div>
+  <div id="chat" tabindex="0" role="region" aria-label="Visor del chat"></div>
 
   <script>
     const firebaseConfig = {
@@ -125,14 +125,13 @@
       return hoy.toISOString().slice(0, 10);
     }
 
-    // --- FUNCIÓN linkify MODIFICADA PARA DESCARGA EN TV Y CONTROL REMOTO ---
     function linkify(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.replace(urlRegex, url => {
         if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
-          return `<img class="msg-img" src="${url}" alt="imagen" style="width: 180px; height: 150px;">`;
+          return `<img class="msg-img" src="${url}" alt="imagen">`;
         } else {
-          return `<a href="${url}" download class="link-btn" tabindex="0">✓ Abrir contenido</a>`;
+          return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
         }
       });
     }
@@ -173,42 +172,23 @@
       const msgDiv = crearMensajeBox(data, key);
       chatDiv.appendChild(msgDiv);
       if (autoScroll) {
-        chatDiv.scrollTop = chat.scrollHeight;
-      }
-      if (chatDiv.children.length === 1) {
-        chatDiv.children[0].focus();
+        chatDiv.scrollTop = chatDiv.scrollHeight;
       }
     });
 
-    function manejarFocoEnChat(e) {
-      const elementosVisibles = Array.from(chatDiv.querySelectorAll('.message-box, a.link-btn')).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
-      const primerElemento = elementosVisibles[0];
-      const ultimoElemento = elementosVisibles[elementosVisibles.length - 1];
-
-      if (!primerElemento || !ultimoElemento) return;
-
-      const estaEnElChat = chatDiv.contains(document.activeElement);
-
-      if (e.key === "Tab" && !e.shiftKey) {
-        if (!estaEnElChat) {
-          e.preventDefault();
-          primerElemento.focus();
-        } else if (document.activeElement === ultimoElemento) {
-          e.preventDefault();
-          primerElemento.focus();
-        }
-      } else if (e.key === "Tab" && e.shiftKey) {
-        if (!estaEnElChat) {
-          e.preventDefault();
-          ultimoElemento.focus();
-        } else if (document.activeElement === primerElemento) {
-          e.preventDefault();
-          ultimoElemento.focus();
-        }
+    // Mantener el foco siempre en el visor
+    chatDiv.focus();
+    chatDiv.addEventListener('keydown', e => {
+      if (e.key === "ArrowDown") {
+        const next = document.activeElement.nextElementSibling;
+        if (next) next.focus();
+        e.preventDefault();
+      } else if (e.key === "ArrowUp") {
+        const prev = document.activeElement.previousElementSibling;
+        if (prev) prev.focus();
+        e.preventDefault();
       }
-    }
-
-    document.addEventListener('keydown', manejarFocoEnChat);
+    });
   </script>
 </body>
 </html>
