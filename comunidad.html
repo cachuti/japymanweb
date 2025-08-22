@@ -165,12 +165,11 @@
       return hoy.toISOString().slice(0, 10);
     }
 
-    // Función modificada para aplicar el tamaño a las imágenes
+    // --- AQUÍ ESTÁ LA FUNCIÓN MODIFICADA ---
     function linkify(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.replace(urlRegex, url => {
         if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes("firebasestorage.googleapis.com")) {
-          // Aplicamos los estilos de tamaño aquí
           return `<img class="msg-img" src="${url}" alt="imagen" style="width: 180px; height: 150px;">`;
         } else {
           return `<button class="link-btn" onclick="window.open('${url}', '_blank')" tabindex="0">✓ Abrir contenido</button>`;
@@ -217,25 +216,21 @@
         chatDiv.scrollTop = chat.scrollHeight;
       }
       
-      // Aseguramos que el primer mensaje tenga foco al cargar la página
       if (chatDiv.children.length === 1) {
         chatDiv.children[0].focus();
       }
     });
 
-    // Nueva función para manejar el foco de teclado
     function manejarFocoEnChat(e) {
       const elementosVisibles = Array.from(chatDiv.querySelectorAll('.message-box, button.link-btn')).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
       const primerElemento = elementosVisibles[0];
       const ultimoElemento = elementosVisibles[elementosVisibles.length - 1];
 
-      if (!primerElemento || !ultimoElemento) {
-        return; // No hay elementos para enfocar en el chat
-      }
+      if (!primerElemento || !ultimoElemento) return;
 
       const estaEnElChat = chatDiv.contains(document.activeElement);
 
-      if (e.key === "Tab" && !e.shiftKey) { // Se pulsa Tab hacia adelante
+      if (e.key === "Tab" && !e.shiftKey) {
         if (!estaEnElChat) {
           e.preventDefault();
           primerElemento.focus();
@@ -243,7 +238,7 @@
           e.preventDefault();
           primerElemento.focus();
         }
-      } else if (e.key === "Tab" && e.shiftKey) { // Se pulsa Shift + Tab hacia atrás
+      } else if (e.key === "Tab" && e.shiftKey) {
         if (!estaEnElChat) {
           e.preventDefault();
           ultimoElemento.focus();
@@ -259,4 +254,3 @@
   </script>
 </body>
 </html>
-
