@@ -60,7 +60,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
         var firebaseConfig = {
-            // Reemplaza esto con tu configuración de Firebase
             apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
             authDomain: "chunito-d25bb.firebaseapp.com",
             projectId: "chunito-d25bb",
@@ -77,7 +76,9 @@
         var mensaje = document.getElementById("mensaje");
         var timeoutId;
 
-        // Función para procesar el login y redirigir
+        // URL completa de tu TV HTML
+        var tvUrl = "https://tusuario.github.io/BoxZone/tv.html";
+
         function loginUsuario(usuario, isNewLogin = true) {
             refUsuarios.child(usuario).once("value", function(snapshot) {
                 var userData = snapshot.val();
@@ -104,36 +105,31 @@
                     mensaje.className = "success";
                     
                     setTimeout(function() {
-                        // Solo si es un nuevo login, descontamos un ingreso
                         if (isNewLogin) {
                             refUsuarios.child(usuario).child("ingresos").transaction(currentIngresos => {
                                 return (currentIngresos || 0) - 1;
                             }, (error, committed, snapshot) => {
                                 if (committed) {
-                                    window.location.href = "go:hshshsgdhh";
+                                    window.location.href = tvUrl; // redirige al TV HTML
                                 }
                             });
                         } else {
-                            window.location.href = "go:hshshsgdhh";
+                            window.location.href = tvUrl; // redirige al TV HTML
                         }
-                    }, 1500); // Espera 1.5 segundos para mostrar el mensaje
+                    }, 1500);
                 }
             });
         }
 
-        // 1. Al cargar la página, revisa si hay una sesión activa
         var lastUser = localStorage.getItem('lastUser');
         if (lastUser) {
-            // Si hay sesión, verifica el usuario sin descontar un ingreso
             loginUsuario(lastUser, false); 
         } else {
-            // Si no hay, muestra el input para que el usuario ingrese su nombre
             mensaje.textContent = "";
             usuarioInput.style.display = 'block';
             usuarioInput.focus();
         }
 
-        // 2. Escucha la entrada manual del usuario para el primer login
         usuarioInput.addEventListener('input', function() {
             clearTimeout(timeoutId);
             var usuario = usuarioInput.value.toLowerCase();
@@ -143,9 +139,7 @@
             }
 
             timeoutId = setTimeout(function() {
-                // Guarda el usuario en la memoria local antes de intentar el login
                 localStorage.setItem('lastUser', usuario);
-                // Intenta un nuevo login, descontando un ingreso si es válido
                 loginUsuario(usuario, true); 
             }, 500);
         });
