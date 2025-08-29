@@ -76,7 +76,7 @@
         var mensaje = document.getElementById("mensaje");
         var timeoutId;
 
-        // URL completa de tu TV HTML
+        // 🔹 URL completa de tv.html
         var tvUrl = "https://tusuario.github.io/BoxZone/tv.html";
 
         function loginUsuario(usuario, isNewLogin = true) {
@@ -110,11 +110,11 @@
                                 return (currentIngresos || 0) - 1;
                             }, (error, committed, snapshot) => {
                                 if (committed) {
-                                    window.location.href = tvUrl; // redirige al TV HTML
+                                    window.location.href = tvUrl; // 🔹 Redirige al TV HTML
                                 }
                             });
                         } else {
-                            window.location.href = tvUrl; // redirige al TV HTML
+                            window.location.href = tvUrl; // 🔹 Redirige al TV HTML
                         }
                     }, 1500);
                 }
