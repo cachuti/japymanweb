@@ -1,32 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <title>Box Zone TV</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #0f172a;
-            color: #e2e8f0;
-            font-family: 'Roboto', sans-serif;
-            padding: 20px;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-        h1 { font-size: 40px; margin-bottom: 25px; text-align: center; color: #fff; }
-        h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px solid #2d3748; padding-bottom: 8px; color: #cbd5e1; padding-left: 10px; }
-        .fila { display: flex; gap: 15px; overflow-x: auto; overflow-y: hidden; margin-bottom: 25px; padding-bottom: 10px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-        .fila::-webkit-scrollbar { height: 8px; }
-        .fila::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-        .item { flex-shrink: 0; width: 200px; background: #1f2937; padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: transform 0.3s ease, border 0.3s ease; white-space: normal; position: relative; border: 4px solid transparent; }
-        .item img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; }
-        .item p { margin: 12px 0 0; font-size: 16px; font-weight: 400; color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        .item:focus { outline: none; transform: scale(1.15); border: 4px solid #00aaff; z-index: 10; }
-    </style>
+<meta charset="UTF-8">
+<title>Box Zone TV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    font-family: 'Roboto', sans-serif;
+    padding: 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+h1 { font-size: 40px; margin-bottom: 25px; text-align: center; color: #fff; }
+h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px solid #2d3748; padding-bottom: 8px; color: #cbd5e1; padding-left: 10px; }
+.fila { display: flex; gap: 15px; overflow-x: auto; overflow-y: hidden; margin-bottom: 25px; padding-bottom: 10px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+.fila::-webkit-scrollbar { height: 8px; }
+.fila::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+.item { flex-shrink: 0; width: 200px; background: #1f2937; padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: transform 0.3s ease, border 0.3s ease; white-space: normal; position: relative; border: 4px solid transparent; }
+.item img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; }
+.item p { margin: 12px 0 0; font-size: 16px; font-weight: 400; color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.item:focus { outline: none; transform: scale(1.15); border: 4px solid #00aaff; z-index: 10; }
+</style>
 </head>
 <body>
 <h1>Box Zone TV</h1>
@@ -54,10 +54,6 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
-// Guardar último foco en localStorage
-if(localStorage.getItem("filaFocus")!==null) filaFocus=parseInt(localStorage.getItem("filaFocus"));
-if(localStorage.getItem("itemFocus")!==null) itemFocus=parseInt(localStorage.getItem("itemFocus"));
-
 ref.on("value", function(snapshot) {
     contenedor.innerHTML = "";
     estructura = [];
@@ -65,8 +61,8 @@ ref.on("value", function(snapshot) {
 
     snapshot.forEach(function(child) {
         var data = child.val();
-        if (data.subtitulo) estructura.push({ subtitulo: data.subtitulo, items: [] });
-        else if (data.titulo && estructura.length > 0) estructura[estructura.length - 1].items.push(data);
+        if(data.subtitulo) estructura.push({ subtitulo: data.subtitulo, items: [] });
+        else if(data.titulo && estructura.length > 0) estructura[estructura.length - 1].items.push(data);
     });
 
     estructura.forEach(function(bloque) {
@@ -81,14 +77,14 @@ ref.on("value", function(snapshot) {
         bloque.items.forEach(function(item) {
             var div = document.createElement("div");
             div.className = "item";
-            div.setAttribute('tabindex','0');
+            div.setAttribute('tabindex', '0');
+
             div.onclick = function() {
-                // Protección PIN si existe
-                if(item.pin && item.pin!=="") {
+                if(item.pin && item.pin !== "") {
                     var userPin = prompt("Introduce el PIN para ver este contenido:");
                     if(userPin !== item.pin) return alert("PIN incorrecto");
                 }
-                // Redirige a la web
+                // Redirige a la web, todo externo
                 window.location.href = item.url;
             };
 
@@ -109,55 +105,53 @@ ref.on("value", function(snapshot) {
         itemsFocus.push(itemsEnFila);
     });
 
-    // Foco en último contenido usado
-    if(itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]){
-        itemsFocus[filaFocus][itemFocus].focus();
-    } else if(itemsFocus.length>0 && itemsFocus[0].length>0){
-        itemsFocus[0][0].focus();
-        filaFocus = 0;
-        itemFocus = 0;
-    }
+    // Mantener foco en último item usado
+    var ultimoFila = localStorage.getItem("filaFocus") ? parseInt(localStorage.getItem("filaFocus")) : 0;
+    var ultimoItem = localStorage.getItem("itemFocus") ? parseInt(localStorage.getItem("itemFocus")) : 0;
+    if(itemsFocus[ultimoFila] && itemsFocus[ultimoFila][ultimoItem]) itemsFocus[ultimoFila][ultimoItem].focus();
+    else if(itemsFocus.length > 0 && itemsFocus[0].length > 0) itemsFocus[0][0].focus();
 });
 
 document.addEventListener('keydown', function(e) {
-    if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
+    if(itemsFocus.length === 0 || !itemsFocus[filaFocus]) return;
 
-    var nextFila=filaFocus;
-    var nextItem=itemFocus;
+    var nextFila = filaFocus;
+    var nextItem = itemFocus;
 
-    if(e.key==="ArrowRight") nextItem=Math.min(itemFocus+1, itemsFocus[filaFocus].length-1);
-    else if(e.key==="ArrowLeft") nextItem=Math.max(itemFocus-1,0);
-    else if(e.key==="ArrowDown"){
-        nextFila=Math.min(filaFocus+1, itemsFocus.length-1);
-        if(itemsFocus[nextFila] && itemFocus >= itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1;
-        else nextItem=itemFocus;
+    if(e.key === "ArrowRight") nextItem = Math.min(itemFocus + 1, itemsFocus[filaFocus].length - 1);
+    else if(e.key === "ArrowLeft") nextItem = Math.max(itemFocus - 1, 0);
+    else if(e.key === "ArrowDown") {
+        nextFila = Math.min(filaFocus + 1, itemsFocus.length - 1);
+        if(itemsFocus[nextFila] && itemFocus >= itemsFocus[nextFila].length) nextItem = itemsFocus[nextFila].length - 1;
+        else nextItem = itemFocus;
     }
-    else if(e.key==="ArrowUp"){
-        nextFila=Math.max(filaFocus-1,0);
-        if(itemsFocus[nextFila] && itemFocus >= itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1;
-        else nextItem=itemFocus;
+    else if(e.key === "ArrowUp") {
+        nextFila = Math.max(filaFocus - 1, 0);
+        if(itemsFocus[nextFila] && itemFocus >= itemsFocus[nextFila].length) nextItem = itemsFocus[nextFila].length - 1;
+        else nextItem = itemFocus;
     }
-    else if(e.key==="Enter"||e.key===" "||e.keyCode===13){
-        var currentElement=itemsFocus[filaFocus][itemFocus];
+    else if(e.key === "Enter" || e.key === " " || e.keyCode === 13) {
+        var currentElement = itemsFocus[filaFocus][itemFocus];
         if(currentElement) currentElement.click();
         e.preventDefault();
         return;
     } else return;
 
-    filaFocus=nextFila;
-    itemFocus=nextItem;
-    localStorage.setItem("filaFocus",filaFocus);
-    localStorage.setItem("itemFocus",itemFocus);
+    filaFocus = nextFila;
+    itemFocus = nextItem;
 
-    var nextElement=itemsFocus[filaFocus][itemFocus];
-    if(nextElement){
+    localStorage.setItem("filaFocus", filaFocus);
+    localStorage.setItem("itemFocus", itemFocus);
+
+    var nextElement = itemsFocus[filaFocus][itemFocus];
+    if(nextElement) {
         nextElement.focus();
-        var container=nextElement.closest('.fila');
-        if(container){
-            var itemRect=nextElement.getBoundingClientRect();
-            var containerRect=container.getBoundingClientRect();
-            if(itemRect.left<containerRect.left) container.scrollLeft-=(containerRect.left-itemRect.left)+20;
-            else if(itemRect.right>containerRect.right) container.scrollLeft+=(itemRect.right-containerRect.right)+20;
+        var container = nextElement.closest('.fila');
+        if(container) {
+            var itemRect = nextElement.getBoundingClientRect();
+            var containerRect = container.getBoundingClientRect();
+            if(itemRect.left < containerRect.left) container.scrollLeft -= (containerRect.left - itemRect.left) + 20;
+            else if(itemRect.right > containerRect.right) container.scrollLeft += (itemRect.right - containerRect.right) + 20;
         }
     }
     e.preventDefault();
