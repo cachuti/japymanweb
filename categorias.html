@@ -34,10 +34,13 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
     font-size: 36px; padding: 15px; border-radius: 8px; border: none; text-align: center; margin-bottom: 20px;
 }
 #pinOverlay button {
-    font-size: 24px; padding: 10px 20px; border-radius: 6px; background-color: #4c51bf; color: #fff; border: none; cursor: pointer;
+    font-size: 24px; padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer;
+    background-color: #4c51bf; color: #fff;
+    margin: 0 10px;
 }
+#pinOverlay button:focus { outline: none; box-shadow: 0 0 0 4px #00aaff; }
 #pinOverlay p { color: #ff4d4d; font-size: 20px; margin-top: 10px; display: none; }
-#pinInput:focus, #pinSubmit:focus { outline: none; box-shadow: 0 0 0 4px #00aaff; }
+#pinInput:focus { outline: none; box-shadow: 0 0 0 4px #00aaff; }
 </style>
 </head>
 <body>
@@ -46,7 +49,10 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
 
 <div id="pinOverlay">
     <input type="password" id="pinInput" placeholder="Introduce el PIN" tabindex="1">
-    <button id="pinSubmit" tabindex="2">Ver Contenido</button>
+    <div>
+        <button id="pinBack" tabindex="2">Volver a Inicio</button>
+        <button id="pinSubmit" tabindex="3">Ver Contenido</button>
+    </div>
     <p id="pinError">PIN incorrecto</p>
 </div>
 
@@ -75,16 +81,26 @@ var itemFocus = 0;
 var pinOverlay = document.getElementById("pinOverlay");
 var pinInput = document.getElementById("pinInput");
 var pinSubmit = document.getElementById("pinSubmit");
+var pinBack = document.getElementById("pinBack");
 var pinError = document.getElementById("pinError");
 
 var contenidoActual = null;
+var lastFocusedElement = null;
 
 function mostrarPin(item){
     contenidoActual = item;
+    lastFocusedElement = document.activeElement;
     pinInput.value = '';
     pinError.style.display = 'none';
     pinOverlay.style.display = 'flex';
     pinInput.focus();
+}
+
+function volverAInicio(){
+    pinOverlay.style.display = 'none';
+    if(lastFocusedElement) {
+        lastFocusedElement.focus();
+    }
 }
 
 pinSubmit.addEventListener("click", function(){
@@ -96,31 +112,44 @@ pinSubmit.addEventListener("click", function(){
     }
 });
 
+pinBack.addEventListener("click", volverAInicio);
+
 document.addEventListener('keydown', function(e) {
     if (pinOverlay.style.display === 'flex') {
-        // Permitir la entrada de texto y las teclas de borrado
         if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
             return;
         }
+        
+        const focused = document.activeElement;
 
-        // Manejar la navegación con flechas solo si el foco no está en el input
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            if (document.activeElement === pinInput) {
-                pinSubmit.focus();
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            if (focused.id === 'pinInput') {
+                pinBack.focus(); // Enfocar el primer botón del grupo al presionar Abajo
             } else {
                 pinInput.focus();
             }
             e.preventDefault();
-        } else if (e.key === 'Enter') {
-            if (document.activeElement === pinSubmit) {
-                pinSubmit.click();
-            } else {
+        } else if (e.key === 'ArrowRight') {
+            if (focused.id === 'pinBack') {
                 pinSubmit.focus();
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowLeft') {
+            if (focused.id === 'pinSubmit') {
+                pinBack.focus();
+            }
+            e.preventDefault();
+        } else if (e.key === 'Enter') {
+            if (focused.id === 'pinSubmit') {
+                pinSubmit.click();
+            } else if (focused.id === 'pinBack') {
+                pinBack.click();
+            } else if (focused.id === 'pinInput') {
+                pinSubmit.focus(); // Mover el foco a "Ver Contenido"
             }
             e.preventDefault();
         }
     } else {
-        // Lógica de navegación principal cuando el overlay no está visible
         if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
 
         var nextFila = filaFocus;
@@ -231,7 +260,6 @@ ref.on("value", function(snapshot){
         }
     }
 });
-
 </script>
 </body>
 </html>
