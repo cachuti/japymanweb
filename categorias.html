@@ -28,51 +28,11 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
 .item img { width: 100%; height: 160px; object-fit: cover; border-radius: 5px; }
 .item p { margin: 6px 0 0; font-size: 16px; font-weight: 400; color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .item:focus { outline: none; transform: scale(1.15); border: 2px solid #00aaff; z-index: 10; }
-
-/* Modal */
-#modal {
-  position: fixed;
-  background: rgba(15,23,42,0.95);
-  overflow-y: auto;
-  display: none;
-  padding: 10px;
-  z-index: 1000;
-  border-radius: 6px;
-}
-
-/* Modal vertical centrado */
-#modal.normal-mode {
-  width: 400px;
-  height: 60vh;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Modal cuando video se reproduce (esquina izquierda) */
-#modal.fullscreen-mode {
-  width: 300px;
-  height: 50vh;
-  top: 10px;
-  left: 10px;
-  transform: none;
-}
-
-#modal .modal-item {
-  padding: 12px;
-  margin: 5px 0;
-  background: #1e293b;
-  border-radius: 6px;
-}
-#modal .focused {
-  background: #2563eb;
-}
 </style>
 </head>
 <body>
 <h1>Box Zone TV</h1>
 <div id="contenido"></div>
-<div id="modal"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
@@ -98,31 +58,6 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
-// Modal
-var modal = document.getElementById("modal");
-var modalItems = [];
-var modalIndex = 0;
-var hasPlayed = false; // controla si ya se reprodujo un contenido
-
-// Funciones modal
-function setModalFocus(index){
-    modalItems.forEach((el,i)=>el.classList.toggle("focused", i===index));
-    modalIndex = index;
-    if(modalItems[index]) modalItems[index].scrollIntoView({block:"nearest"});
-}
-function openModal(){ 
-    modal.style.display = "block"; 
-    if(hasPlayed){
-        modal.classList.remove("normal-mode");
-        modal.classList.add("fullscreen-mode");
-    } else {
-        modal.classList.remove("fullscreen-mode");
-        modal.classList.add("normal-mode");
-    }
-    if(modalItems.length>0) setModalFocus(0); 
-}
-function closeModal(){ modal.style.display = "none"; }
-
 // Recuperar última posición
 if(localStorage.getItem("filaFocus")!==null) filaFocus=parseInt(localStorage.getItem("filaFocus"));
 if(localStorage.getItem("itemFocus")!==null) itemFocus=parseInt(localStorage.getItem("itemFocus"));
@@ -132,17 +67,18 @@ function handleItemClick(element){
     var url = element.getAttribute('data-url');
     if(url){
         window.open(url,'_blank'); 
-        hasPlayed = true; 
+
+        // Guardar posición actual
+        localStorage.setItem("filaFocus", element.dataset.fila);
+        localStorage.setItem("itemFocus", element.dataset.item);
     }
 }
 
 // Cargar contenido
 ref.on("value", snapshot=>{
     contenedor.innerHTML="";
-    modal.innerHTML="";
     estructura=[];
     itemsFocus=[];
-    modalItems=[];
     snapshot.forEach(child=>{
         var data = child.val();
         if(data.subtitulo) estructura.push({subtitulo:data.subtitulo, items:[]});
@@ -172,19 +108,13 @@ ref.on("value", snapshot=>{
             fila.appendChild(div);
             itemsEnFila.push(div);
 
-            var mDiv = document.createElement("div");
-            mDiv.className="modal-item";
-            mDiv.textContent = item.descripcion||item.titulo||"";
-            mDiv.dataset.url = item.url;
-            modal.appendChild(mDiv);
-            modalItems.push(mDiv);
-
             div.addEventListener('click', function() { handleItemClick(this); });
         });
         contenedor.appendChild(fila);
         itemsFocus.push(itemsEnFila);
     });
 
+    // Restaurar focus al cargar
     if(itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]){
         itemsFocus[filaFocus][itemFocus].focus();
     } else if(itemsFocus.length>0 && itemsFocus[0].length>0){
@@ -196,34 +126,13 @@ ref.on("value", snapshot=>{
 
 // Navegación teclado/control remoto
 document.addEventListener('keydown', e=>{
-    // Modal activo
-    if(modal.style.display==="block"){
-        if(e.key==="ArrowDown"){
-            modalIndex = (modalIndex+1)%modalItems.length;
-            setModalFocus(modalIndex);
-        }
-        if(e.key==="ArrowUp"){
-            modalIndex = (modalIndex-1+modalItems.length)%modalItems.length;
-            setModalFocus(modalIndex);
-        }
-        if(e.key==="Enter"){
-            var url = modalItems[modalIndex].dataset.url;
-            if(url) window.open(url,'_blank');
-        }
-        if(e.key==="Escape" || e.key==="Backspace"){
-            closeModal();
-        }
-        e.preventDefault();
-        return;
-    }
-
     if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
     var nextFila=filaFocus;
     var nextItem=itemFocus;
 
     if(e.key==="ArrowRight") {
         nextItem=Math.min(itemFocus+1, itemsFocus[filaFocus].length-1);
-    } else if(e.key==="ArrowLeft"){
+    } else if(e.key==="ArrowLeft") {
         nextItem=Math.max(itemFocus-1,0);
     } else if(e.key==="ArrowDown"){
         if(filaFocus<itemsFocus.length-1){
@@ -237,11 +146,7 @@ document.addEventListener('keydown', e=>{
         }
     } else if(e.key==="Enter"||e.key===" "||e.keyCode===13){
         var currentElement = itemsFocus[filaFocus][itemFocus];
-        if(!hasPlayed){
-            if(currentElement) handleItemClick(currentElement);
-        } else {
-            openModal(); // Después de reproducir, Enter abre modal
-        }
+        if(currentElement) handleItemClick(currentElement);
         e.preventDefault();
         return;
     } else {
