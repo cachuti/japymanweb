@@ -14,6 +14,7 @@ h2{font-size:28px;margin-top:35px;margin-bottom:15px;color:#cbd5e1;padding-left:
 .item img{width:100%;height:160px;object-fit:cover;border-radius:5px;}
 .item p{margin:6px 0 0;font-size:16px;font-weight:400;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .item:focus{outline:none;transform:scale(1.15);border:2px solid #00aaff;z-index:10;}
+.protegido::after{content:" 🔒";color:#ff5555;font-weight:bold;}
 </style>
 </head>
 <body>
@@ -39,6 +40,10 @@ var contenedor = document.getElementById("contenido");
 
 var estructura=[], itemsFocus=[], filaFocus=0, itemFocus=0;
 
+// Recuperar última posición
+if(localStorage.getItem("filaFocus")!==null) filaFocus=parseInt(localStorage.getItem("filaFocus"));
+if(localStorage.getItem("itemFocus")!==null) itemFocus=parseInt(localStorage.getItem("itemFocus"));
+
 // Función PIN
 function pedirPin(callback){
     let pin = prompt("Este contenido está protegido. Ingresa el PIN de 3 dígitos:");
@@ -63,6 +68,7 @@ ref.on("value", snapshot => {
             div.dataset.fila=bIndex; div.dataset.item=iIndex;
             div.dataset.url=item.url;
             div.dataset.protegido=item.protegido||false;
+            if(div.dataset.protegido==="true") div.classList.add("protegido");
             var img=document.createElement("img"); img.src=item.imagen;
             var desc=document.createElement("p"); desc.textContent=item.descripcion||item.titulo||"";
             div.appendChild(img); div.appendChild(desc); fila.appendChild(div);
@@ -92,6 +98,10 @@ document.addEventListener('keydown', e => {
     } else return;
 
     filaFocus=nextFila; itemFocus=nextItem;
+    // Guardar posición
+    localStorage.setItem("filaFocus", filaFocus);
+    localStorage.setItem("itemFocus", itemFocus);
+
     var nextEl = itemsFocus[filaFocus][itemFocus];
     if(nextEl){
         nextEl.focus();
