@@ -54,6 +54,15 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
+// Función para redirigir con PIN
+function abrirContenido(item) {
+    if(item.pin && item.pin !== "") {
+        let userPin = prompt("Introduce el PIN para ver este contenido:");
+        if(userPin !== item.pin) return alert("PIN incorrecto");
+    }
+    window.open(item.url, "_blank");
+}
+
 ref.on("value", function(snapshot) {
     contenedor.innerHTML = "";
     estructura = [];
@@ -80,12 +89,7 @@ ref.on("value", function(snapshot) {
             div.setAttribute('tabindex', '0');
 
             div.onclick = function() {
-                if(item.pin && item.pin !== "") {
-                    var userPin = prompt("Introduce el PIN para ver este contenido:");
-                    if(userPin !== item.pin) return alert("PIN incorrecto");
-                }
-                // Redirige a la web, todo externo
-                window.location.href = item.url;
+                abrirContenido(item);
             };
 
             var img = document.createElement("img");
