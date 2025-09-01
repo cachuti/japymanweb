@@ -124,7 +124,7 @@ document.addEventListener('keydown', function(e) {
 
         if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             if (focused.id === 'pinInput') {
-                pinBack.focus(); // Enfocar el primer botón del grupo al presionar Abajo
+                pinBack.focus();
             } else {
                 pinInput.focus();
             }
@@ -145,7 +145,7 @@ document.addEventListener('keydown', function(e) {
             } else if (focused.id === 'pinBack') {
                 pinBack.click();
             } else if (focused.id === 'pinInput') {
-                pinSubmit.focus(); // Mover el foco a "Ver Contenido"
+                pinSubmit.focus();
             }
             e.preventDefault();
         }
@@ -195,6 +195,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Cargar contenido desde Firebase
 ref.on("value", function(snapshot){
     contenedor.innerHTML = "";
     estructura = [];
@@ -257,6 +258,23 @@ ref.on("value", function(snapshot){
         itemFocus = 0;
         if(itemsFocus.length > 0 && itemsFocus[0].length > 0) {
             itemsFocus[0][0].focus();
+        }
+    }
+});
+
+// 👇 NUEVO: doble atrás para cerrar
+let ultimaVezAtras = 0;
+document.addEventListener('keydown', function(e) {
+    if (e.key === "Backspace" || e.key === "Escape") {
+        if (pinOverlay.style.display !== 'flex') {
+            let ahora = Date.now();
+            if (ahora - ultimaVezAtras < 1000) {
+                window.close();
+            } else {
+                alert("Presiona atrás otra vez para salir");
+                ultimaVezAtras = ahora;
+            }
+            e.preventDefault();
         }
     }
 });
