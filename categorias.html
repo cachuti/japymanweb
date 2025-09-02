@@ -1,393 +1,131 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Box Zone TV</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
-        :root {
-            --bg: #0f172a;
-            --bg-card: #1f2937;
-            --accent: #00aaff;
-            --text: #e2e8f0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
         body {
-            background: var(--bg);
-            color: var(--text);
-            padding-top: 70px;
-            overflow-x: hidden;
-        }
-
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            background: var(--bg-card);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            font-weight: 700;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,.4);
-        }
-
-        /* 🔁 LOADER GOOGLE REAL */
-        #loader {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        .google-loader {
-            width: 48px;
-            height: 48px;
-            position: relative;
-        }
-
-        .google-loader::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border: 4px solid rgba(0,170,255,.3);
-            border-radius: 50%;
-        }
-
-        .google-loader::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border: 4px solid transparent;
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .seccion {
-            margin: 40px 24px;
-        }
-
-        .titulo-seccion {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: #0d1117;
+            color: #00ff00;
             font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text);
-        }
-
-        .fila {
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
             display: flex;
-            gap: 24px;
-            overflow-x: auto;
-            padding-bottom: 12px;
+            justify-content: center;
+            align-items: center;
         }
-
-        .item {
-            flex: 0 0 auto;
-            width: 280px;
-            height: 200px;
-            background: var(--bg-card);
-            border-radius: 16px;
+        .pantalla {
+            width: 95%;
+            max-width: 1400px;
+            padding: 40px;
+            box-sizing: border-box;
+            background: rgba(13, 17, 23, 0.9);
+            border: 1px solid #3b82f6;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            z-index: 2;
+        }
+        .titulo-principal {
+            font-size: 56px;
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        .titulo {
+            font-size: 32px;
+            text-align: center;
+            color: #a0aec0;
+            margin-bottom: 50px;
+        }
+        .opciones {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+        }
+        .opcion {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #3b82f6;
+            border-radius: 12px;
+            color: #3b82f6;
+            width: 260px;
+            height: 140px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.15s ease;
-            outline: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .item img {
-            width: 100%;
-            height: 70%;
-            object-fit: contain;
-            background: #000;
-        }
-
-        .item .label {
-            width: 100%;
-            height: 30%;
-            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text);
-            text-align: center;
-            padding: 0 12px;
-        }
-
-        /* 🔍 Foco solo cuando se mueve DPAD */
-        .item.tv-focus {
-            transform: scale(1.03);
-            box-shadow: 0 0 0 4px var(--accent);
-            z-index: 10;
-        }
-
-        /* Modal PIN */
-        #pinOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.75);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .pinModal {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 56px 48px;
-            width: 90%;
-            max-width: 420px;
-            text-align: center;
-        }
-
-        .pinModal h2 {
-            font-size: 28px;
-            margin-bottom: 32px;
-            color: var(--text);
-        }
-
-        .pinModal input {
-            width: 100%;
-            font-size: 32px;
-            padding: 20px;
-            border: none;
-            border-radius: 12px;
-            background: var(--bg);
-            color: var(--text);
-            text-align: center;
-            margin-bottom: 40px;
-            outline: none;
-        }
-
-        .pinModal .actions {
-            display: flex;
-            gap: 24px;
-        }
-
-        .pinModal button {
-            flex: 1;
+            text-decoration: none;
             font-size: 20px;
-            font-weight: 600;
-            padding: 20px;
-            border: none;
-            border-radius: 16px;
-            background: var(--accent);
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.2s;
+            text-align: center;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .opcion i {
+            font-size: 42px;
+            margin-bottom: 12px;
+            color: #3b82f6;
+        }
+        .opcion:hover,
+        .opcion:focus {
+            background-color: #3b82f6;
+            color: #ffffff;
             outline: none;
+            border-color: #ffffff;
         }
-
-        .pinModal button:focus {
-            background: #0088cc;
-            box-shadow: 0 0 0 4px rgba(0,170,255,.5);
+        .opcion:hover i,
+        .opcion:focus i {
+            color: #ffffff;
         }
-
-        #pinError {
-            margin-top: 20px;
-            color: #ff5252;
-            font-weight: 600;
-            display: none;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .item { width: 240px; height: 180px; }
+        .footer {
+            margin-top: 50px;
+            font-size: 16px;
+            text-align: center;
+            color: #a0aec0;
+            border-top: 1px solid #3b82f6;
+            padding-top: 20px;
         }
     </style>
 </head>
 <body>
-
-    <!-- Loader Google -->
-    <div id="loader">
-        <div class="google-loader"></div>
-    </div>
-
-    <!-- Header -->
-    <header>Box Zone TV</header>
-
-    <!-- Contenido -->
-    <div id="contenido"></div>
-
-    <!-- Modal PIN -->
-    <div id="pinOverlay">
-        <div class="pinModal">
-            <h2>Ingresa el PIN</h2>
-            <input type="password" id="pinInput" maxlength="4" autocomplete="off">
-            <div class="actions">
-                <button id="pinBack">Cancelar</button>
-                <button id="pinSubmit">Ver canal</button>
-            </div>
-            <p id="pinError">PIN incorrecto</p>
+    <div id="menu" class="pantalla">
+        <div class="titulo-principal">Box Zone</div>
+        <div class="titulo">Tienda de Aplicaciones</div>
+        <div class="opciones">
+            <a href="#" onclick="irA('extras')" class="opcion" tabindex="2">
+                <i class="fas fa-film"></i>Biblioteca Premium
+            </a>
+            <a href="#" onclick="irA('agenda')" class="opcion" tabindex="3">
+                <i class="fas fa-bolt"></i>TV BOX ZONE
+            </a>
+        </div>
+        <div class="footer">
+            Este servicio es proporcionado por Box Zone. Todos los derechos reservados.<br>
+            Consulta nuestras políticas de privacidad y condiciones de uso para más información.
         </div>
     </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <script>
-        let canalAbierto = false;
+        function irA(destino) {
+            if(destino === 'tv') {
+                window.location.href = 'tv.html';
+            } else if(destino === 'extras') {
+                window.location.href = 'biblioteca.html';
+            } else if(destino === 'agenda') {
+                window.location.href = 'tvboxzone.html'; // <-- Aquí se abre tu HTML de TV BOX ZONE
+            } else if(destino === 'comunidad') {
+                window.location.href = 'comunidad.html';
+            }
+        }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-            authDomain: "chunito-d25bb.firebaseapp.com",
-            projectId: "chunito-d25bb",
-            databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
-            storageBucket: "chunito-d25bb.appspot.com",
-            messagingSenderId: "748622352005",
-            appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
+        window.onload = () => {
+            const opciones = document.querySelectorAll('.opcion');
+            if(opciones.length > 0) opciones[0].focus();
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const ref = db.ref("novedades");
-
-        const contenedor = document.getElementById("contenido");
-        const loader = document.getElementById("loader");
-        const pinOverlay = document.getElementById("pinOverlay");
-        const pinInput = document.getElementById("pinInput");
-        const pinSubmit = document.getElementById("pinSubmit");
-        const pinBack = document.getElementById("pinBack");
-        const pinError = document.getElementById("pinError");
-
-        let contenidoActual = null;
-        let currentFocusIndex = 0;
-        let focusableItems = [];
-
-        function abrirCanal(url) {
-            if (canalAbierto) return;
-            canalAbierto = true;
-            window.open(url, "_blank");
-        }
-
-        function updateFocus() {
-            focusableItems.forEach((item, idx) => {
-                item.classList.toggle("tv-focus", idx === currentFocusIndex);
-            });
-        }
-
-        function handleKey(e) {
-            const total = focusableItems.length;
-            if (total === 0) return;
-            if (e.key === "ArrowRight") {
-                currentFocusIndex = (currentFocusIndex + 1) % total;
-            } else if (e.key === "ArrowLeft") {
-                currentFocusIndex = (currentFocusIndex - 1 + total) % total;
-            } else if (e.key === "Enter") {
-                focusableItems[currentFocusIndex].click();
-            }
-            updateFocus();
-        }
-
-        ref.on("value", function (snapshot) {
-            contenedor.innerHTML = "";
-            let estructura = [];
-            snapshot.forEach(function (child) {
-                const data = child.val();
-                if (data.subtitulo) estructura.push({ subtitulo: data.subtitulo, items: [] });
-                else if (data.titulo && estructura.length > 0) estructura[estructura.length - 1].items.push(data);
-            });
-
-            estructura.forEach((bloque, idx) => {
-                const seccion = document.createElement("div");
-                seccion.className = "seccion";
-
-                const titulo = document.createElement("div");
-                titulo.className = "titulo-seccion";
-                titulo.textContent = bloque.subtitulo;
-
-                const fila = document.createElement("div");
-                fila.className = "fila";
-
-                bloque.items.forEach(item => {
-                    const div = document.createElement("div");
-                    div.className = "item";
-                    div.tabIndex = 0;
-
-                    const img = document.createElement("img");
-                    img.src = item.imagen;
-                    img.alt = item.titulo;
-
-                    const label = document.createElement("div");
-                    label.className = "label";
-                    label.textContent = item.titulo;
-
-                    div.appendChild(img);
-                    div.appendChild(label);
-
-                    div.onclick = () => {
-                        if (item.pin && item.pin !== "") {
-                            contenidoActual = item;
-                            pinOverlay.style.display = "flex";
-                            pinInput.value = "";
-                            pinError.style.display = "none";
-                            pinInput.focus();
-                        } else {
-                            abrirCanal(item.url);
-                        }
-                    };
-
-                    fila.appendChild(div);
-                });
-
-                seccion.appendChild(titulo);
-                seccion.appendChild(fila);
-                contenedor.appendChild(seccion);
-            });
-
-            // ✅ Limpia el foco al cargar nuevos elementos
-            focusableItems = Array.from(document.querySelectorAll(".item"));
-            currentFocusIndex = -1; // Sin foco por defecto
-            updateFocus();
-            loader.style.display = "none";
-        });
-
-        // 👇 Navegación DPAD / teclado
-        document.addEventListener("keydown", handleKey);
-
-        // Modal DPAD
-        pinSubmit.addEventListener("click", () => {
-            if (contenidoActual && pinInput.value === contenidoActual.pin) {
-                pinOverlay.style.display = "none";
-                abrirCanal(contenidoActual.url);
-            } else {
-                pinError.style.display = "block";
-            }
-        });
-
-        pinBack.addEventListener("click", () => {
-            pinOverlay.style.display = "none";
-        });
-
-        // Reset al volver
-        window.addEventListener("focus", () => {
-            canalAbierto = false;
-        });
     </script>
 </body>
 </html>
-
