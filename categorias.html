@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Box Zone TV</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
         body {
             margin: 0;
-            font-family: 'Montserrat', sans-serif;
-            background: #0d1117;
-            color: #00ff00;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1A202C 0%, #2D3748 100%);
+            color: #F0F0F0;
             font-size: 24px;
             overflow: hidden;
             position: relative;
@@ -23,72 +23,78 @@
         .pantalla {
             width: 95%;
             max-width: 1400px;
-            padding: 40px;
+            padding: 50px;
             box-sizing: border-box;
-            background: rgba(13, 17, 23, 0.9);
-            border: 1px solid #3b82f6;
+            background: rgba(26, 32, 44, 0.85);
+            border: 2px solid #FFD700;
             border-radius: 20px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
             backdrop-filter: blur(5px);
             z-index: 2;
         }
         .titulo-principal {
-            font-size: 56px;
+            font-size: 64px;
             text-align: center;
-            color: #ffffff;
-            margin-bottom: 5px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 10px;
         }
         .titulo {
             font-size: 32px;
             text-align: center;
-            color: #a0aec0;
-            margin-bottom: 50px;
+            color: #A0AEC0;
+            margin-bottom: 60px;
         }
         .opciones {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 25px;
+            gap: 30px;
         }
         .opcion {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #3b82f6;
+            background: #2D3748;
+            border: 1px solid #4A5568;
             border-radius: 12px;
-            color: #3b82f6;
-            width: 260px;
-            height: 140px;
+            color: #F0F0F0;
+            width: 280px;
+            height: 150px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            font-size: 20px;
+            font-size: 22px;
+            font-weight: 600;
             text-align: center;
             padding: 15px;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
         .opcion i {
-            font-size: 42px;
-            margin-bottom: 12px;
-            color: #3b82f6;
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #FFD700;
+            transition: color 0.4s ease;
         }
         .opcion:hover,
         .opcion:focus {
-            background-color: #3b82f6;
-            color: #ffffff;
+            background-color: #3B4A61;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(255, 215, 0, 0.3);
             outline: none;
-            border-color: #ffffff;
+            border-color: #FFD700;
         }
         .opcion:hover i,
         .opcion:focus i {
-            color: #ffffff;
+            color: #F0F0F0;
         }
         .footer {
-            margin-top: 50px;
+            margin-top: 60px;
             font-size: 16px;
             text-align: center;
-            color: #a0aec0;
-            border-top: 1px solid #3b82f6;
-            padding-top: 20px;
+            color: #A0AEC0;
+            border-top: 1px solid #4A5568;
+            padding-top: 25px;
         }
     </style>
 </head>
