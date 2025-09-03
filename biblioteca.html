@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --color-bg-dark: #1a001f;
@@ -25,12 +26,73 @@
             overflow-x: hidden;
         }
 
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 4%;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(42, 0, 51, 0.9);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(224, 195, 255, 0.1);
+        }
+
         #main-title {
             font-size: 2.8rem;
             font-weight: 700;
             color: #d9b3ff;
-            margin-bottom: 1rem;
             text-shadow: 0 0 15px rgba(160, 32, 240, 0.8);
+            margin: 0;
+        }
+        
+        .search-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        #search-input {
+            width: 0;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--color-text-light);
+            font-size: 1.1rem;
+            transition: width 0.4s ease, padding 0.4s ease;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        #search-input.active {
+            width: 250px;
+            padding: 0.5rem 1rem;
+            background: var(--color-bg-light);
+            border-radius: 20px;
+            cursor: text;
+        }
+        
+        #search-input:focus {
+            outline: none;
+            border-color: var(--color-focus-glow);
+        }
+
+        .search-button {
+            background: transparent;
+            border: none;
+            color: var(--color-text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .search-button:focus {
+            outline: none;
+            transform: scale(1.1);
+            color: var(--color-focus-glow);
         }
 
         .main-container {
@@ -63,52 +125,56 @@
             background: var(--color-bg-dark);
         }
 
-        .item {
+        .item-card {
             flex-shrink: 0;
-            width: 115px; /* Tamaño reducido a la mitad */
-            height: 170px; /* Tamaño reducido a la mitad */
+            width: 115px; 
             position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease;
+            outline: none; /* Elimina el contorno de foco por defecto */
+        }
+
+        .item-card:focus {
+            transform: scale(1.12);
+        }
+
+        .item {
+            width: 115px; 
+            height: 170px; 
             border-radius: 15px;
             overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
             border: 3px solid transparent;
             background: #000;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
-        .item:focus {
-            outline: none;
-            transform: scale(1.12);
-            box-shadow: 0 0 10px 5px var(--color-soft-focus); /* Sombra suave sin efecto neón */
-            border-color: var(--color-soft-focus); /* Borde simple sin efecto neón */
+        .item-card:focus .item {
+            border-color: var(--color-soft-focus); 
+            box-shadow: 0 0 10px 5px var(--color-soft-focus); 
         }
 
         .item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 15px;
-        }
-
-        .item .item-title-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
-            padding: 1rem;
-            color: #fff;
-            font-size: 1.1rem;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .item:hover .item-title-overlay,
-        .item:focus .item-title-overlay {
-            opacity: 1;
         }
         
+        .item-title {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-text-light);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .modal {
             position: fixed;
             top: 0;
@@ -129,13 +195,13 @@
             background: #2a0033;
             padding: 2rem;
             border-radius: 20px;
-            max-width: 65%; /* Ancho ajustado para la nueva imagen */
+            max-width: 65%; 
             box-shadow: 0 0 30px rgba(160, 32, 240, 0.7);
         }
 
         .modal-image {
-            width: 200px; /* Tamaño de imagen del modal ajustado */
-            height: 300px; /* Tamaño de imagen del modal ajustado */
+            width: 200px; 
+            height: 300px;
             object-fit: cover;
             border-radius: 12px;
         }
@@ -176,8 +242,16 @@
     </style>
 </head>
 <body>
-    <div class="main-container">
+    <div class="header">
         <h1 id="main-title">Box Zone Film</h1>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar..." tabindex="-1" />
+            <button id="search-button" class="search-button" tabindex="0">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+    </div>
+    <div class="main-container">
         <div id="content-container"></div>
     </div>
     
@@ -215,11 +289,15 @@
         var modal = document.getElementById("modal-pelicula");
         var btnReproducir = document.getElementById("btn-reproducir");
         var btnVolver = document.getElementById("btn-volver");
+        var searchInput = document.getElementById("search-input");
+        var searchButton = document.getElementById("search-button");
 
         var allItems = [];
+        var allCategories = [];
         var rows = [];
         var isModalActive = false;
         var lastFocusedElement = null;
+        var isSearchActive = false;
 
         function renderContent(data) {
             contentContainer.innerHTML = "";
@@ -230,18 +308,20 @@
             data.forEach(category => {
                 let row = { title: category.title, items: [] };
                 category.items.forEach(item => {
-                    let itemDiv = document.createElement('div');
-                    itemDiv.className = "item";
-                    itemDiv.setAttribute('tabindex', '0');
-                    itemDiv.setAttribute('data-titulo', item.titulo);
-                    itemDiv.setAttribute('data-descripcion', item.descripcion);
-                    itemDiv.setAttribute('data-imagen', item.imagen);
-                    itemDiv.setAttribute('data-url', item.url);
-                    itemDiv.innerHTML = `
-                        <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
-                        <div class="item-title-overlay">${item.titulo}</div>
+                    let itemCard = document.createElement('div');
+                    itemCard.className = "item-card";
+                    itemCard.setAttribute('tabindex', '0');
+                    itemCard.setAttribute('data-titulo', item.titulo);
+                    itemCard.setAttribute('data-descripcion', item.descripcion);
+                    itemCard.setAttribute('data-imagen', item.imagen);
+                    itemCard.setAttribute('data-url', item.url);
+                    itemCard.innerHTML = `
+                        <div class="item">
+                            <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
+                        </div>
+                        <span class="item-title">${item.titulo}</span>
                     `;
-                    row.items.push(itemDiv);
+                    row.items.push(itemCard);
                 });
                 tempRows.push(row);
             });
@@ -267,6 +347,69 @@
                 setTimeout(() => allItems[0][0].focus(), 100);
             }
         }
+
+        function filterContent(query) {
+            query = query.toLowerCase();
+            contentContainer.innerHTML = "";
+            allItems = [];
+            rows = [];
+
+            if (query === "") {
+                renderContent(allCategories);
+                return;
+            }
+
+            let filteredItems = [];
+            let allItemsFlat = [].concat(...allCategories.map(cat => cat.items));
+
+            let tempRow = { title: "Resultados de la búsqueda", items: [] };
+            
+            allItemsFlat.forEach(item => {
+                if (item.titulo.toLowerCase().includes(query)) {
+                    let itemCard = document.createElement('div');
+                    itemCard.className = "item-card";
+                    itemCard.setAttribute('tabindex', '0');
+                    itemCard.setAttribute('data-titulo', item.titulo);
+                    itemCard.setAttribute('data-descripcion', item.descripcion);
+                    itemCard.setAttribute('data-imagen', item.imagen);
+                    itemCard.setAttribute('data-url', item.url);
+                    itemCard.innerHTML = `
+                        <div class="item">
+                            <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
+                        </div>
+                        <span class="item-title">${item.titulo}</span>
+                    `;
+                    tempRow.items.push(itemCard);
+                }
+            });
+
+            if (tempRow.items.length > 0) {
+                let sectionTitle = document.createElement('h2');
+                sectionTitle.className = "section-title";
+                sectionTitle.textContent = tempRow.title;
+                contentContainer.appendChild(sectionTitle);
+                
+                let carousel = document.createElement('div');
+                carousel.className = "carousel";
+                tempRow.items.forEach(item => {
+                    carousel.appendChild(item);
+                });
+                contentContainer.appendChild(carousel);
+
+                rows.push(carousel);
+                allItems.push(tempRow.items);
+            } else {
+                let noResults = document.createElement('p');
+                noResults.textContent = "No se encontraron resultados.";
+                noResults.style.textAlign = 'center';
+                noResults.style.marginTop = '2rem';
+                contentContainer.appendChild(noResults);
+            }
+
+            if (allItems.length > 0 && allItems[0].length > 0) {
+                setTimeout(() => allItems[0][0].focus(), 100);
+            }
+        }
         
         ref.on("value", function(snapshot) {
             const categoriesData = [];
@@ -284,7 +427,8 @@
                     categoriesData.push(category);
                 }
             });
-            renderContent(categoriesData);
+            allCategories = categoriesData;
+            renderContent(allCategories);
         });
 
         function openModal(itemData) {
@@ -307,58 +451,112 @@
         
         btnVolver.onclick = closeModal;
 
+        searchButton.onclick = function() {
+            isSearchActive = !isSearchActive;
+            if (isSearchActive) {
+                searchInput.classList.add('active');
+                searchInput.setAttribute('tabindex', '0');
+                searchInput.focus();
+            } else {
+                searchInput.classList.remove('active');
+                searchInput.setAttribute('tabindex', '-1');
+                searchInput.value = "";
+                filterContent("");
+                if (lastFocusedElement) {
+                    lastFocusedElement.focus();
+                } else {
+                    allItems[0][0].focus();
+                }
+            }
+        };
+
+        searchInput.addEventListener('input', function(e) {
+            filterContent(e.target.value);
+        });
+
         document.addEventListener('keydown', function(e) {
+            let focusedElement = document.activeElement;
+
             if (isModalActive) {
                 if (e.key === "ArrowRight") { btnVolver.focus(); }
                 else if (e.key === "ArrowLeft") { btnReproducir.focus(); }
-                else if (e.key === "Enter") { document.activeElement.click(); }
+                else if (e.key === "Enter") { focusedElement.click(); }
                 else if (e.key === "Escape" || e.key === "Backspace") { closeModal(); }
-            } else {
-                let focusedElement = document.activeElement;
-                let isItemFocused = focusedElement && focusedElement.closest('.item');
-                let newFocusedElement = focusedElement;
+                return;
+            }
 
-                if (isItemFocused) {
-                    let currentItemRow = -1;
-                    let currentItemIndexInRow = -1;
-                    
-                    for(let r = 0; r < allItems.length; r++) {
-                        let idx = allItems[r].findIndex(item => item === focusedElement);
-                        if (idx !== -1) {
-                            currentItemRow = r;
-                            currentItemIndexInRow = idx;
-                            break;
-                        }
+            if (focusedElement === searchButton) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    searchButton.click();
+                }
+                return;
+            }
+
+            if (focusedElement === searchInput) {
+                if (e.key === "Escape" || e.key === "Backspace") {
+                    e.preventDefault();
+                    searchInput.value = "";
+                    filterContent("");
+                    searchButton.focus();
+                }
+                return;
+            }
+
+            let isItemFocused = focusedElement && focusedElement.closest('.item-card');
+            let newFocusedElement = focusedElement;
+
+            if (isItemFocused) {
+                let currentItemRow = -1;
+                let currentItemIndexInRow = -1;
+                
+                for(let r = 0; r < allItems.length; r++) {
+                    let idx = allItems[r].findIndex(item => item === focusedElement);
+                    if (idx !== -1) {
+                        currentItemRow = r;
+                        currentItemIndexInRow = idx;
+                        break;
                     }
+                }
 
-                    if (e.key === "ArrowRight" && currentItemIndexInRow < allItems[currentItemRow].length - 1) {
-                        newFocusedElement = allItems[currentItemRow][currentItemIndexInRow + 1];
-                    } else if (e.key === "ArrowLeft" && currentItemIndexInRow > 0) {
-                        newFocusedElement = allItems[currentItemRow][currentItemIndexInRow - 1];
-                    } else if (e.key === "ArrowDown" && currentItemRow < allItems.length - 1) {
-                        let nextRowItems = allItems[currentItemRow + 1];
-                        let nextItemIndex = Math.min(currentItemIndexInRow, nextRowItems.length - 1);
-                        newFocusedElement = nextRowItems[nextItemIndex];
-                    } else if (e.key === "ArrowUp" && currentItemRow > 0) {
+                if (e.key === "ArrowRight" && currentItemIndexInRow < allItems[currentItemRow].length - 1) {
+                    newFocusedElement = allItems[currentItemRow][currentItemIndexInRow + 1];
+                } else if (e.key === "ArrowLeft" && currentItemIndexInRow > 0) {
+                    newFocusedElement = allItems[currentItemRow][currentItemIndexInRow - 1];
+                } else if (e.key === "ArrowDown" && currentItemRow < allItems.length - 1) {
+                    let nextRowItems = allItems[currentItemRow + 1];
+                    let nextItemIndex = Math.min(currentItemIndexInRow, nextRowItems.length - 1);
+                    newFocusedElement = nextRowItems[nextItemIndex];
+                } else if (e.key === "ArrowUp") {
+                    if (currentItemRow > 0) {
                         let prevRowItems = allItems[currentItemRow - 1];
                         let prevItemIndex = Math.min(currentItemIndexInRow, prevRowItems.length - 1);
                         newFocusedElement = prevRowItems[prevItemIndex];
-                    } else if (e.key === "Enter") {
-                        lastFocusedElement = focusedElement;
-                        focusedElement.click();
-                        return;
+                    } else {
+                        // Si está en la primera fila, el foco va a la lupa
+                        newFocusedElement = searchButton;
                     }
+                } else if (e.key === "Enter") {
+                    lastFocusedElement = focusedElement;
+                    focusedElement.click();
+                    return;
                 }
-                
-                if (newFocusedElement && newFocusedElement !== focusedElement) {
-                    newFocusedElement.focus();
+            } else if (focusedElement === searchButton) {
+                if (e.key === "ArrowDown" && allItems.length > 0) {
+                    newFocusedElement = allItems[0][0];
+                }
+            }
+            
+            if (newFocusedElement && newFocusedElement !== focusedElement) {
+                newFocusedElement.focus();
+                if (newFocusedElement.closest('.carousel')) {
                     newFocusedElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
                 }
             }
         });
 
         document.addEventListener('click', function(e) {
-            let item = e.target.closest('.item');
+            let item = e.target.closest('.item-card');
             if (item) {
                 let data = {
                     titulo: item.getAttribute('data-titulo'),
@@ -370,6 +568,11 @@
                 openModal(data);
             }
         });
+
+        // Asegurar que el foco inicial sea la lupa
+        window.onload = function() {
+            setTimeout(() => searchButton.focus(), 500);
+        };
     </script>
 </body>
 </html>
