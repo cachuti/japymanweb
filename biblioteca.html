@@ -1,291 +1,185 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <title>Box Zone Películas</title>
+    <title>Box Zone Film</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-bg-dark: #0f172a;
-            --color-bg-medium: #1e293b;
-            --color-text-light: #e2e8f0;
-            --color-text-dim: #94a3b8;
-            --color-focus-glow: #0ea5e9;
+            --color-bg-dark: #1a001f;
+            --color-bg-light: #2a0033;
+            --color-text-light: #f5f5f5;
+            --color-text-dim: #bbb;
+            --color-focus-glow: #a020f0; /* Morado brillante */
         }
-
         body {
-            background-color: var(--color-bg-dark);
+            background: linear-gradient(180deg, #2a0033 0%, #1a001f 100%);
             color: var(--color-text-light);
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
-            padding: 0 20px;
+            padding: 2rem;
             overflow-x: hidden;
         }
 
-        .top-section {
-            position: sticky;
-            top: 0;
-            background-color: var(--color-bg-dark);
-            padding: 20px 0 0 0;
-            z-index: 99;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        h1 {
-            font-size: 40px;
-            margin-bottom: 25px;
-            text-align: center;
-            color: #fff;
+        #main-title {
+            font-size: 2.8rem;
             font-weight: 700;
+            color: #d9b3ff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 15px rgba(160, 32, 240, 0.8);
         }
 
-        #category-carousel {
+        .main-container {
+            padding: 0 4%;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e0c3ff;
+            margin: 2.5rem 0 1.5rem;
+        }
+
+        .carousel {
             display: flex;
             overflow-x: auto;
-            gap: 10px;
-            padding: 10px 0;
+            gap: 1rem;
+            padding: 1rem 0;
             -webkit-overflow-scrolling: touch;
         }
-
-        #category-carousel::-webkit-scrollbar {
-            height: 8px;
-        }
-        #category-carousel::-webkit-scrollbar-thumb {
-            background: var(--color-bg-medium);
-            border-radius: 10px;
-        }
-
-        .category-button {
-            flex-shrink: 0;
-            padding: 12px 24px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 20px;
-            border: 2px solid transparent;
-            background-color: #3b82f6;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            outline: none;
-        }
-
-        .category-button:focus, .category-button.active {
-            background-color: #ffffff;
-            color: #000;
-            border-color: #ffffff;
-        }
         
-        .fila {
-            display: flex;
-            overflow-x: auto;
-            margin-bottom: 25px;
-            padding-bottom: 10px;
-            gap: 15px;
-        }
-
-        .fila::-webkit-scrollbar {
+        .carousel::-webkit-scrollbar {
             height: 8px;
         }
-        .fila::-webkit-scrollbar-thumb {
-            background: var(--color-bg-medium);
+        .carousel::-webkit-scrollbar-thumb {
+            background: var(--color-bg-light);
             border-radius: 10px;
         }
-        .fila::-webkit-scrollbar-track {
+        .carousel::-webkit-scrollbar-track {
             background: var(--color-bg-dark);
         }
 
         .item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: var(--color-bg-medium);
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            border: 2px solid transparent;
+            flex-shrink: 0;
+            width: 230px;
+            height: 340px;
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s ease, border 0.2s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+            border: 3px solid transparent;
+            background: #000;
         }
-
+        
         .item:focus {
             outline: none;
+            transform: scale(1.12);
+            box-shadow: 0 0 25px 8px var(--color-focus-glow);
             border-color: var(--color-focus-glow);
-            transform: scale(1.05);
         }
 
         .item img {
-            width: 200px;
-            height: 150px;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            border-radius: 15px;
         }
 
-        .item .item-title {
-            margin: 0 0 10px;
-            font-size: 16px;
-            font-weight: 400;
-            color: var(--color-text-light);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
+        .item .item-title-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            padding: 1rem;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .item:hover .item-title-overlay,
+        .item:focus .item-title-overlay {
+            opacity: 1;
         }
         
-        /* --- Estilos de la Ventana Modal --- */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
+            background: rgba(10, 0, 20, 0.95);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 100;
         }
-
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
-            background: var(--color-bg-medium);
-            border-radius: 12px;
-            padding: 40px;
-            max-width: 80%;
             display: flex;
-            gap: 40px;
-            align-items: flex-start;
+            gap: 2rem;
+            background: #2a0033;
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 75%;
+            box-shadow: 0 0 30px rgba(160, 32, 240, 0.7);
         }
-        
+
         .modal-image {
-            width: 200px;
-            height: 300px;
+            width: 280px;
+            height: 420px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 12px;
         }
-        
+
         .modal-details {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-        }
-
-        .modal-details h3 {
-            font-size: 36px;
-            margin: 0;
             color: #fff;
         }
-
+        .modal-details h3 {
+            font-size: 2.5rem;
+            margin-top: 0;
+            color: #d9b3ff;
+        }
         .modal-details p {
-            font-size: 18px;
-            line-height: 1.5;
+            font-size: 1rem;
             color: var(--color-text-dim);
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
         }
-
         .modal-actions {
             display: flex;
-            gap: 20px;
-            margin-top: 20px;
+            gap: 1rem;
+            margin-top: auto;
         }
-
-        /* Cambiado de button a ancla para el botón de Reproducir */
         .modal-button {
-            display: inline-block;
-            padding: 15px 30px;
-            font-size: 20px;
-            border-radius: 8px;
-            border: 2px solid transparent;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none; /* Para los enlaces */
-            text-align: center;
+            transition: transform 0.2s, background-color 0.2s;
         }
-
-        .modal-button.play {
-            background-color: var(--color-focus-glow);
-            color: #fff;
-        }
-        
-        .modal-button.back {
-            background-color: #4b5563;
-            color: #fff;
-        }
-        
-        .modal-button:focus {
-            outline: none;
-            background-color: #ffffff;
-            color: #000;
-            box-shadow: none;
-            border-color: #fff;
-        }
-        
-        /* --- Estilos de la Política de Privacidad --- */
-        .privacy-section {
-            background-color: var(--color-bg-medium);
-            padding: 25px;
-            margin-top: 50px;
-            border-radius: 12px;
-            color: var(--color-text-dim);
-        }
-
-        .privacy-section h3 {
-            font-size: 24px;
-            margin-top: 0;
-            color: #fff;
-            border-bottom: 1px solid #4b5563;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .privacy-section p {
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        /* --- Estilos del pie de página dentro de la sección de privacidad --- */
-        .privacy-section footer {
-            text-align: center;
-            padding: 10px 0 0 0;
-            margin-top: 10px;
-            font-size: 14px;
-            color: var(--color-text-dim);
-            border-top: 1px solid #4b5563;
-            width: 100%;
-        }
+        .modal-button.play { background: var(--color-focus-glow); color: white; }
+        .modal-button.back { background: #5a2d82; color: white; }
+        .modal-button:focus { outline: 3px solid #fff; transform: scale(1.05); }
     </style>
 </head>
 <body>
-    <div class="top-section">
-        <h1 id="main-title">Box Zone Películas</h1>
-        <div id="category-carousel"></div>
+    <div class="main-container">
+        <h1 id="main-title">Box Zone Film</h1>
+        <div id="content-container"></div>
     </div>
     
-    <div class="content-section">
-        <div id="contenido"></div>
-    </div>
-
-    <div class="privacy-section">
-        <h3>Política de Privacidad</h3>
-        <p>
-            En Box Zone Películas, valoramos su privacidad. Esta política describe cómo se recopila, utiliza y protege su información. Al utilizar esta aplicación, usted acepta los términos descritos a continuación.
-            No recopilamos información personal de identificación, como nombres, direcciones de correo electrónico o números de teléfono. La aplicación solo accede a los enlaces de videos para su reproducción, y no guarda ningún historial de visualización ni comparte datos con terceros. Todos los videos provienen de fuentes externas y Box Zone Películas no aloja ningún contenido en sus servidores.
-        </p>
-        <footer>
-            <p>© 2025 Box Zone Películas. Todos los derechos reservados.</p>
-        </footer>
-    </div>
-
     <div id="modal-pelicula" class="modal">
         <div class="modal-content">
             <img id="modal-imagen" class="modal-image" src="" alt="Imagen de la película">
@@ -293,13 +187,14 @@
                 <h3 id="modal-titulo"></h3>
                 <p id="modal-descripcion"></p>
                 <div class="modal-actions">
-                    <a id="btn-reproducir" class="modal-button play" tabindex="0" href="#" target="_blank">Reproducir</a>
+                    <a id="btn-reproducir" class="modal-button play" tabindex="0" href="#" target="_blank">▶ Reproducir</a>
                     <button id="btn-volver" class="modal-button back" tabindex="0">Volver</button>
                 </div>
             </div>
         </div>
     </div>
-
+    
+    <!-- Firebase + script de navegación -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
@@ -312,125 +207,91 @@
             messagingSenderId: "748622352005",
             appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
         };
-
         firebase.initializeApp(firebaseConfig);
         var db = firebase.database();
-        var ref = db.ref("box-zone-estrenos");
-        var contenedor = document.getElementById("contenido");
-        var categoryCarousel = document.getElementById("category-carousel");
-        var mainTitle = document.getElementById("main-title");
+        var ref = db.ref("tuyo");
+
+        var contentContainer = document.getElementById("content-container");
         var modal = document.getElementById("modal-pelicula");
-        // btnReproducir ahora es un enlace
         var btnReproducir = document.getElementById("btn-reproducir");
         var btnVolver = document.getElementById("btn-volver");
 
-        var itemsFocus = [];
-        var categoryButtons = [];
-        var filaFocus = 0;
-        var itemFocus = 0;
+        var allItems = [];
+        var rows = [];
         var isModalActive = false;
         var lastFocusedElement = null;
-        var activeCategoryKey = null;
 
-        function renderCategoryButtons(categories) {
-            categoryCarousel.innerHTML = "";
-            categoryButtons = [];
+        function renderContent(data) {
+            contentContainer.innerHTML = "";
+            allItems = [];
+            rows = [];
             
-            categories.forEach(function(category) {
-                var button = document.createElement('button');
-                button.className = "category-button";
-                button.textContent = category.subtitulo;
-                button.setAttribute('data-key', category.key);
-                button.setAttribute('data-title', category.subtitulo);
-                button.setAttribute('tabindex', '0');
-
-                button.addEventListener('click', function() {
-                    lastFocusedElement = button;
-                    showMoviesForCategory(category.key, category.subtitulo);
+            let tempRows = [];
+            data.forEach(category => {
+                let row = { title: category.title, items: [] };
+                category.items.forEach(item => {
+                    let itemDiv = document.createElement('div');
+                    itemDiv.className = "item";
+                    itemDiv.setAttribute('tabindex', '0');
+                    itemDiv.setAttribute('data-titulo', item.titulo);
+                    itemDiv.setAttribute('data-descripcion', item.descripcion);
+                    itemDiv.setAttribute('data-imagen', item.imagen);
+                    itemDiv.setAttribute('data-url', item.url);
+                    itemDiv.innerHTML = `
+                        <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
+                        <div class="item-title-overlay">${item.titulo}</div>
+                    `;
+                    row.items.push(itemDiv);
                 });
-
-                categoryCarousel.appendChild(button);
-                categoryButtons.push(button);
+                tempRows.push(row);
             });
             
-            if (categories.length > 0) {
-                activeCategoryKey = categories[0].key;
-                showMoviesForCategory(categories[0].key, categories[0].subtitulo);
+            tempRows.forEach(row => {
+                let sectionTitle = document.createElement('h2');
+                sectionTitle.className = "section-title";
+                sectionTitle.textContent = row.title;
+                contentContainer.appendChild(sectionTitle);
+
+                let carousel = document.createElement('div');
+                carousel.className = "carousel";
+                row.items.forEach(item => {
+                    carousel.appendChild(item);
+                });
+                contentContainer.appendChild(carousel);
+                
+                rows.push(carousel);
+                allItems.push(row.items);
+            });
+
+            if (allItems.length > 0 && allItems[0].length > 0) {
+                setTimeout(() => allItems[0][0].focus(), 100);
             }
         }
-
-        function showMoviesForCategory(categoryKey, categoryTitle) {
-            activeCategoryKey = categoryKey;
-            mainTitle.textContent = "Box Zone Películas";
-            contenedor.innerHTML = "";
-            itemsFocus = [];
-
-            categoryButtons.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-key') === categoryKey) {
-                    btn.classList.add('active');
-                    btn.focus();
-                }
-            });
-
-            var categoryRef = db.ref("box-zone-estrenos/" + categoryKey);
-            categoryRef.once("value").then(function(snapshot) {
-                let htmlString = `<div class="fila">`;
-                snapshot.forEach(function(itemSnapshot) {
+        
+        ref.on("value", function(snapshot) {
+            const categoriesData = [];
+            snapshot.forEach(function(categorySnapshot) {
+                const category = {
+                    title: categorySnapshot.val().subtitulo,
+                    items: []
+                };
+                categorySnapshot.forEach(function(itemSnapshot) {
                     if (itemSnapshot.key !== "subtitulo") {
-                        var itemData = itemSnapshot.val();
-                        htmlString += `
-                            <div class="item" tabindex="0" data-titulo="${itemData.titulo}" data-descripcion="${itemData.descripcion}" data-imagen="${itemData.imagen}" data-url="${itemData.url}">
-                                <img src="${itemData.imagen}" alt="${itemData.titulo}" width="200" height="150" loading="lazy">
-                                <p class="item-title">${itemData.titulo || ""}</p>
-                            </div>
-                        `;
+                        category.items.push(itemSnapshot.val());
                     }
                 });
-                htmlString += "</div>";
-                contenedor.innerHTML = htmlString;
-
-                let movieItems = document.querySelectorAll('.item');
-                itemsFocus = [[...movieItems]];
-                
-                movieItems.forEach(item => {
-                    item.addEventListener('click', function() {
-                        lastFocusedElement = item;
-                        let data = {
-                            titulo: item.getAttribute('data-titulo'),
-                            descripcion: item.getAttribute('data-descripcion'),
-                            imagen: item.getAttribute('data-imagen'),
-                            url: item.getAttribute('data-url')
-                        };
-                        openModal(data);
-                    });
-                });
-
-                if (itemsFocus.length > 0 && itemsFocus[0].length > 0) {
-                    itemsFocus[0][0].focus();
+                if (category.items.length > 0) {
+                    categoriesData.push(category);
                 }
             });
-        }
-
-        ref.on("value", function(snapshot) {
-            const categories = [];
-            snapshot.forEach(function(categorySnapshot) {
-                const categoryData = categorySnapshot.val();
-                if (categoryData.subtitulo) {
-                    categories.push({ key: categorySnapshot.key, subtitulo: categoryData.subtitulo });
-                }
-            });
-            renderCategoryButtons(categories);
+            renderContent(categoriesData);
         });
 
         function openModal(itemData) {
             document.getElementById("modal-imagen").src = itemData.imagen;
             document.getElementById("modal-titulo").textContent = itemData.titulo;
             document.getElementById("modal-descripcion").textContent = itemData.descripcion;
-            
-            // Asigna la URL del video directamente al atributo href del enlace
             btnReproducir.href = itemData.url;
-            
             modal.classList.add("active");
             isModalActive = true;
             btnReproducir.focus();
@@ -445,100 +306,70 @@
         }
         
         btnVolver.onclick = closeModal;
-        
+
         document.addEventListener('keydown', function(e) {
-            e.preventDefault();
-
             if (isModalActive) {
-                if (e.key === "ArrowRight") {
-                    btnVolver.focus();
-                } else if (e.key === "ArrowLeft") {
-                    btnReproducir.focus();
-                } else if (e.key === "Enter" || e.key === " " || e.keyCode === 13) {
-                    document.activeElement.click();
-                } else if (e.key === "Escape" || e.key === "Backspace") {
-                    closeModal();
-                }
+                if (e.key === "ArrowRight") { btnVolver.focus(); }
+                else if (e.key === "ArrowLeft") { btnReproducir.focus(); }
+                else if (e.key === "Enter") { document.activeElement.click(); }
+                else if (e.key === "Escape" || e.key === "Backspace") { closeModal(); }
             } else {
-                let currentFocus = document.activeElement;
-                let nextElement;
-                let isFocusOnCategoryCarousel = categoryCarousel.contains(currentFocus);
-                let isFocusOnMovieGrid = itemsFocus.length > 0 && itemsFocus[0].includes(currentFocus);
-                
-                if (e.key === "Enter" || e.key === " " || e.keyCode === 13) {
-                    if (isFocusOnCategoryCarousel) {
-                        const categoryKey = currentFocus.getAttribute('data-key');
-                        const categoryTitle = currentFocus.getAttribute('data-title');
-                        showMoviesForCategory(categoryKey, categoryTitle);
-                    } else if (isFocusOnMovieGrid) {
-                        currentFocus.click();
-                    }
-                    return;
-                }
-                
-                if (isFocusOnCategoryCarousel) {
-                    if (e.key === "ArrowRight") {
-                        let currentIndex = categoryButtons.findIndex(btn => btn === currentFocus);
-                        nextElement = categoryButtons[Math.min(categoryButtons.length - 1, currentIndex + 1)];
-                    } else if (e.key === "ArrowLeft") {
-                        let currentIndex = categoryButtons.findIndex(btn => btn === currentFocus);
-                        nextElement = categoryButtons[Math.max(0, currentIndex - 1)];
-                    } else if (e.key === "ArrowDown") {
-                        if (itemsFocus.length > 0 && itemsFocus[0].length > 0) {
-                            nextElement = itemsFocus[0][0];
-                        }
-                    }
-                } else if (isFocusOnMovieGrid) {
-                    var nextFila = filaFocus;
-                    var nextItem = itemFocus;
+                let focusedElement = document.activeElement;
+                let isItemFocused = focusedElement && focusedElement.closest('.item');
+                let newFocusedElement = focusedElement;
 
-                    if (e.key === "ArrowRight") {
-                        nextItem = Math.min(itemsFocus[filaFocus].length - 1, itemFocus + 1);
-                    } else if (e.key === "ArrowLeft") {
-                        nextItem = Math.max(0, itemFocus - 1);
-                    } else if (e.key === "ArrowDown") {
-                        nextFila = Math.min(itemsFocus.length - 1, filaFocus + 1);
-                        if (itemFocus >= itemsFocus[nextFila].length) {
-                            nextItem = itemsFocus[nextFila].length - 1;
+                if (isItemFocused) {
+                    let currentItemRow = -1;
+                    let currentItemIndexInRow = -1;
+                    
+                    for(let r = 0; r < allItems.length; r++) {
+                        let idx = allItems[r].findIndex(item => item === focusedElement);
+                        if (idx !== -1) {
+                            currentItemRow = r;
+                            currentItemIndexInRow = idx;
+                            break;
                         }
-                    } else if (e.key === "ArrowUp") {
-                        if (filaFocus === 0 && categoryButtons.length > 0) {
-                            const activeCategoryButton = categoryButtons.find(btn => btn.getAttribute('data-key') === activeCategoryKey);
-                            nextElement = activeCategoryButton || categoryButtons[0];
-                        } else {
-                            nextFila = Math.max(0, filaFocus - 1);
-                            if (itemFocus >= itemsFocus[nextFila].length) {
-                                nextItem = itemsFocus[nextFila].length - 1;
-                            }
-                        }
+                    }
+
+                    if (e.key === "ArrowRight" && currentItemIndexInRow < allItems[currentItemRow].length - 1) {
+                        newFocusedElement = allItems[currentItemRow][currentItemIndexInRow + 1];
+                    } else if (e.key === "ArrowLeft" && currentItemIndexInRow > 0) {
+                        newFocusedElement = allItems[currentItemRow][currentItemIndexInRow - 1];
+                    } else if (e.key === "ArrowDown" && currentItemRow < allItems.length - 1) {
+                        let nextRowItems = allItems[currentItemRow + 1];
+                        let nextItemIndex = Math.min(currentItemIndexInRow, nextRowItems.length - 1);
+                        newFocusedElement = nextRowItems[nextItemIndex];
+                    } else if (e.key === "ArrowUp" && currentItemRow > 0) {
+                        let prevRowItems = allItems[currentItemRow - 1];
+                        let prevItemIndex = Math.min(currentItemIndexInRow, prevRowItems.length - 1);
+                        newFocusedElement = prevRowItems[prevItemIndex];
+                    } else if (e.key === "Enter") {
+                        lastFocusedElement = focusedElement;
+                        focusedElement.click();
+                        return;
                     }
                 }
                 
-                if (nextElement) {
-                    nextElement.focus();
-                    if (nextElement.closest('#category-carousel')) {
-                                nextElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    }
-                } else if (isFocusOnMovieGrid && (nextFila !== filaFocus || nextItem !== itemFocus)) {
-                    filaFocus = nextFila;
-                    itemFocus = nextItem;
-                    nextElement = itemsFocus[filaFocus][itemFocus];
-                    if (nextElement) {
-                        nextElement.focus();
-                        nextElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    }
+                if (newFocusedElement && newFocusedElement !== focusedElement) {
+                    newFocusedElement.focus();
+                    newFocusedElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
                 }
             }
         });
 
-        // Configurar el foco inicial en el primer botón de categoría al cargar la página
-        window.onload = () => {
-            if (categoryButtons.length > 0) {
-                categoryButtons[0].focus();
+        document.addEventListener('click', function(e) {
+            let item = e.target.closest('.item');
+            if (item) {
+                let data = {
+                    titulo: item.getAttribute('data-titulo'),
+                    descripcion: item.getAttribute('data-descripcion'),
+                    imagen: item.getAttribute('data-imagen'),
+                    url: item.getAttribute('data-url')
+                };
+                lastFocusedElement = item;
+                openModal(data);
             }
-        };
-
+        });
     </script>
 </body>
 </html>
-
