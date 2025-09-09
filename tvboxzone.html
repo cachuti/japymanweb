@@ -136,16 +136,15 @@ function volverAInicio(){
     }
 }
 
+/* 🔹 Modificado: antes usaba iframe, ahora loader + redirección */
 function abrirEnIframe(url){
     let loader = document.getElementById("loaderOverlay");
-    let iframe = document.getElementById("oculto");
-
     loader.style.display = "flex";
-    iframe.src = url;
 
     setTimeout(()=>{
         loader.style.display = "none";
-        iframe.src = "";
+        window.location.href = url; // redirige en la misma ventana
+        // Si prefieres nueva pestaña: window.open(url, "_blank");
     },5000);
 }
 
