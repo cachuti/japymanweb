@@ -41,6 +41,33 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
 #pinOverlay button:focus { outline: none; box-shadow: 0 0 0 4px #00aaff; }
 #pinOverlay p { color: #ff4d4d; font-size: 20px; margin-top: 10px; display: none; }
 #pinInput:focus { outline: none; box-shadow: 0 0 0 4px #00aaff; }
+
+/* Loader pantalla completa */
+#loaderOverlay {
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.9);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:2000;
+}
+.spinner {
+    border: 10px solid #f3f3f3;
+    border-top: 10px solid #00aaff;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+}
+iframe#oculto {
+    display:none;
+}
 </style>
 </head>
 <body>
@@ -55,6 +82,12 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
     </div>
     <p id="pinError">PIN incorrecto</p>
 </div>
+
+<!-- Loader + iframe invisible -->
+<div id="loaderOverlay">
+    <div class="spinner"></div>
+</div>
+<iframe id="oculto"></iframe>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -103,10 +136,23 @@ function volverAInicio(){
     }
 }
 
+function abrirEnIframe(url){
+    let loader = document.getElementById("loaderOverlay");
+    let iframe = document.getElementById("oculto");
+
+    loader.style.display = "flex";
+    iframe.src = url;
+
+    setTimeout(()=>{
+        loader.style.display = "none";
+        iframe.src = "";
+    },5000);
+}
+
 pinSubmit.addEventListener("click", function(){
     if(contenidoActual && pinInput.value === contenidoActual.pin){
         pinOverlay.style.display = 'none';
-        window.open(contenidoActual.url, "_blank");
+        abrirEnIframe(contenidoActual.url);
     } else {
         pinError.style.display = 'block';
     }
@@ -124,7 +170,7 @@ document.addEventListener('keydown', function(e) {
 
         if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             if (focused.id === 'pinInput') {
-                pinBack.focus(); // Enfocar el primer botón del grupo al presionar Abajo
+                pinBack.focus(); 
             } else {
                 pinInput.focus();
             }
@@ -145,7 +191,7 @@ document.addEventListener('keydown', function(e) {
             } else if (focused.id === 'pinBack') {
                 pinBack.click();
             } else if (focused.id === 'pinInput') {
-                pinSubmit.focus(); // Mover el foco a "Ver Contenido"
+                pinSubmit.focus();
             }
             e.preventDefault();
         }
@@ -222,7 +268,7 @@ ref.on("value", function(snapshot){
 
             div.onclick = function(){
                 if(item.pin && item.pin!=="") mostrarPin(item);
-                else window.open(item.url,"_blank");
+                else abrirEnIframe(item.url);
             };
 
             var img = document.createElement("img");
