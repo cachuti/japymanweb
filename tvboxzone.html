@@ -56,7 +56,7 @@ h2 { font-size: 28px; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px 
 <h1>Box Zone TV</h1>
 <div id="contenido"></div>
 
-<!-- Loader -->
+<!-- Loader pantalla completa -->
 <div id="loaderOverlay">
     <div class="spinner"></div>
 </div>
@@ -83,25 +83,15 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
-/* Función modificada: buffer previo antes de abrir URL */
+/* 🔹 Nueva función: loader de 5 segundos antes de abrir URL */
 function abrirConBuffer(url){
     let loader = document.getElementById("loaderOverlay");
     loader.style.display = "flex";
 
-    fetch(url, { method: 'GET' })
-    .then(response => response.blob())
-    .then(blob => {
-        let blobUrl = URL.createObjectURL(blob);
-        setTimeout(()=>{
-            loader.style.display = "none";
-            window.location.href = blobUrl;
-        }, 2000); // 2 segundos de buffer
-    })
-    .catch(err=>{
-        console.error("Error al precargar:", err);
+    setTimeout(()=>{
         loader.style.display = "none";
-        window.location.href = url; // fallback
-    });
+        window.location.href = url;
+    },5000);
 }
 
 document.addEventListener('keydown', function(e) {
@@ -175,7 +165,7 @@ ref.on("value", function(snapshot){
             div.setAttribute('tabindex','0');
 
             div.onclick = function(){
-                abrirConBuffer(item.url); // usamos la función con buffer
+                abrirConBuffer(item.url); // 🔹 Aquí usamos el buffer de 5 segundos
             };
 
             var img = document.createElement("img");
@@ -216,4 +206,3 @@ ref.on("value", function(snapshot){
 </script>
 </body>
 </html>
-
