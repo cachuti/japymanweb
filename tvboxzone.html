@@ -83,7 +83,6 @@ iframe#oculto {
     <p id="pinError">PIN incorrecto</p>
 </div>
 
-<!-- Loader + iframe invisible -->
 <div id="loaderOverlay">
     <div class="spinner"></div>
 </div>
@@ -136,36 +135,22 @@ function volverAInicio(){
     }
 }
 
-// 🔹 Nueva función con buffer y detección Rockchip
-function detectarDispositivo() {
-    const ua = navigator.userAgent.toLowerCase();
-    if(ua.includes("rockchip")) return "rockchip";
-    if(ua.includes("android")) return "android";
-    return "otro";
-}
-
-function abrirEnIframe(urlHD, urlBaja) {
+/* 🔹 Abrir con loader simulado de buffer */
+function abrirEnIframe(url){
     let loader = document.getElementById("loaderOverlay");
     loader.style.display = "flex";
 
-    const dispositivo = detectarDispositivo();
-    let urlFinal = urlHD;
-
-    if(dispositivo === "rockchip" && urlBaja) {
-        urlFinal = urlBaja; // usar versión baja si existe
-    }
-
-    // Espera 6 segundos para bufferizar
+    // 6 segundos de "buffer" antes de reproducir
     setTimeout(()=>{
         loader.style.display = "none";
-        window.location.href = urlFinal; 
-    }, 6000);
+        window.location.href = url;
+    },6000);
 }
 
 pinSubmit.addEventListener("click", function(){
     if(contenidoActual && pinInput.value === contenidoActual.pin){
         pinOverlay.style.display = 'none';
-        abrirEnIframe(contenidoActual.urlHD || contenidoActual.url, contenidoActual.urlBaja);
+        abrirEnIframe(contenidoActual.url);
     } else {
         pinError.style.display = 'block';
     }
@@ -173,25 +158,20 @@ pinSubmit.addEventListener("click", function(){
 
 pinBack.addEventListener("click", volverAInicio);
 
-// Navegación con teclado (igual que antes)
+// Navegación por control remoto
 document.addEventListener('keydown', function(e) {
     if (pinOverlay.style.display === 'flex') {
-        if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') return;
         const focused = document.activeElement;
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-            if (focused.id === 'pinInput') pinBack.focus(); 
+        if(e.key === 'ArrowUp' || e.key === 'ArrowDown'){
+            if(focused.id === 'pinInput') pinBack.focus();
             else pinInput.focus();
             e.preventDefault();
-        } else if (e.key === 'ArrowRight') {
-            if (focused.id === 'pinBack') pinSubmit.focus();
-            e.preventDefault();
-        } else if (e.key === 'ArrowLeft') {
-            if (focused.id === 'pinSubmit') pinBack.focus();
-            e.preventDefault();
-        } else if (e.key === 'Enter') {
-            if (focused.id === 'pinSubmit') pinSubmit.click();
-            else if (focused.id === 'pinBack') pinBack.click();
-            else if (focused.id === 'pinInput') pinSubmit.focus();
+        } else if(e.key === 'ArrowRight'){ if(focused.id==='pinBack') pinSubmit.focus(); e.preventDefault(); }
+        else if(e.key === 'ArrowLeft'){ if(focused.id==='pinSubmit') pinBack.focus(); e.preventDefault(); }
+        else if(e.key==='Enter'){
+            if(focused.id==='pinSubmit') pinSubmit.click();
+            else if(focused.id==='pinBack') pinBack.click();
+            else if(focused.id==='pinInput') pinSubmit.focus();
             e.preventDefault();
         }
     } else {
@@ -205,13 +185,11 @@ document.addEventListener('keydown', function(e) {
             nextFila = Math.min(filaFocus+1, itemsFocus.length-1);
             if(itemsFocus[nextFila] && itemFocus>=itemsFocus[nextFila].length) nextItem = itemsFocus[nextFila].length-1;
             else nextItem = itemFocus;
-        }
-        else if(e.key==="ArrowUp"){
+        } else if(e.key==="ArrowUp"){
             nextFila = Math.max(filaFocus-1,0);
             if(itemsFocus[nextFila] && itemFocus>=itemsFocus[nextFila].length) nextItem = itemsFocus[nextFila].length-1;
             else nextItem = itemFocus;
-        }
-        else if(e.key==="Enter" || e.key===" " || e.keyCode===13){
+        } else if(e.key==="Enter" || e.key===" " || e.keyCode===13){
             var currentElement = itemsFocus[filaFocus][itemFocus];
             if(currentElement) currentElement.click();
             e.preventDefault();
@@ -220,7 +198,6 @@ document.addEventListener('keydown', function(e) {
 
         filaFocus = nextFila;
         itemFocus = nextItem;
-
         localStorage.setItem("filaFocus", filaFocus);
         localStorage.setItem("itemFocus", itemFocus);
 
@@ -239,7 +216,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Carga desde Firebase
+// Carga de contenido desde Firebase
 ref.on("value", function(snapshot){
     contenedor.innerHTML = "";
     estructura = [];
@@ -267,7 +244,7 @@ ref.on("value", function(snapshot){
 
             div.onclick = function(){
                 if(item.pin && item.pin!=="") mostrarPin(item);
-                else abrirEnIframe(item.urlHD || item.url, item.urlBaja);
+                else abrirEnIframe(item.url);
             };
 
             var img = document.createElement("img");
@@ -290,12 +267,11 @@ ref.on("value", function(snapshot){
     let ultimoFila = localStorage.getItem("filaFocus");
     let ultimoItem = localStorage.getItem("itemFocus");
 
-    if (ultimoFila
     if (ultimoFila !== null && ultimoItem !== null) {
         filaFocus = parseInt(ultimoFila);
         itemFocus = parseInt(ultimoItem);
     }
-
+    
     if(itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]){
         itemsFocus[filaFocus][itemFocus].focus();
     } else {
@@ -309,5 +285,3 @@ ref.on("value", function(snapshot){
 </script>
 </body>
 </html>
-
-
