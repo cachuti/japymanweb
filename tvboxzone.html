@@ -28,18 +28,12 @@ h2 { font-size:28px; margin-top:35px; margin-bottom:15px; border-bottom:2px soli
     animation: spin 1s linear infinite;
 }
 @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-
-/* Iframe invisible */
-#preloadFrame {
-    display:none; width:0; height:0; border:0;
-}
 </style>
 </head>
 <body>
 <h1>Box Zone TV</h1>
 <div id="contenido"></div>
 <div id="loaderOverlay"><div class="spinner"></div></div>
-<iframe id="preloadFrame"></iframe>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -63,6 +57,7 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
+// Detectar dispositivos lentos
 function esDispositivoBasico(){
     var ua = navigator.userAgent.toLowerCase();
     return ua.includes("rockchip") || ua.includes("amlogic") || ua.includes("s905") || ua.includes("s912");
@@ -70,37 +65,29 @@ function esDispositivoBasico(){
 
 function reproducirConPrebuffer(item){
     var loader = document.getElementById("loaderOverlay");
-    var iframe = document.getElementById("preloadFrame");
     loader.style.display = "flex";
 
     var urlFinal = item.url;
     if(esDispositivoBasico() && item.url_sd) urlFinal = item.url_sd;
 
-    let cargado = false;
-    let timeout;
-
-    iframe.src = urlFinal;
-
-    iframe.onload = function(){
-        if(!cargado){
-            cargado = true;
-            limpiar();
-            window.location.href = urlFinal; // abrir destino real
-        }
-    };
-
-    timeout = setTimeout(function(){
-        if(!cargado){
-            limpiar();
+    let abierto = false;
+    let timeout = setTimeout(() => {
+        if(!abierto){
+            loader.style.display = "none";
             window.location.href = urlFinal;
+            abierto = true;
         }
-    },10000);
+    }, 10000); // máximo 10s
 
-    function limpiar(){
-        loader.style.display = "none";
-        iframe.src = "";
-        clearTimeout(timeout);
-    }
+    // Simular intento rápido de apertura
+    setTimeout(() => {
+        if(!abierto){
+            loader.style.display = "none";
+            clearTimeout(timeout);
+            window.location.href = urlFinal;
+            abierto = true;
+        }
+    }, 1500); // 1,5s antes de abrir
 }
 
 document.addEventListener('keydown', function(e){
