@@ -20,32 +20,38 @@ h2 { font-size:28px; margin-top:35px; margin-bottom:15px; border-bottom:2px soli
 
 /* Loader pantalla completa */
 #loaderOverlay {
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:2000;
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:2000;
 }
 .spinner {
-    border: 10px solid #f3f3f3; border-top: 10px solid #00aaff; border-radius:50%; width:80px; height:80px;
-    animation: spin 1s linear infinite;
+    border: 10px solid #f3f3f3; border-top: 10px solid #00aaff; border-radius:50%; width:80px; height:80px;
+    animation: spin 1s linear infinite;
 }
 @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+
+/* Iframe invisible */
+#preloadFrame {
+    display:none; width:0; height:0; border:0;
+}
 </style>
 </head>
 <body>
 <h1>Box Zone TV</h1>
 <div id="contenido"></div>
 <div id="loaderOverlay"><div class="spinner"></div></div>
+<iframe id="preloadFrame"></iframe>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
 var firebaseConfig = {
-    apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-    authDomain: "chunito-d25bb.firebaseapp.com",
-    projectId: "chunito-d25bb",
-    databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
-    storageBucket: "chunito-d25bb.appspot.com",
-    messagingSenderId: "748622352005",
-    appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
+    apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+    authDomain: "chunito-d25bb.firebaseapp.com",
+    projectId: "chunito-d25bb",
+    databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
+    storageBucket: "chunito-d25bb.appspot.com",
+    messagingSenderId: "748622352005",
+    appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
 };
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
@@ -57,80 +63,100 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
-// Detectar dispositivos lentos
 function esDispositivoBasico(){
-    var ua = navigator.userAgent.toLowerCase();
-    return ua.includes("rockchip") || ua.includes("amlogic") || ua.includes("s905") || ua.includes("s912");
+    var ua = navigator.userAgent.toLowerCase();
+    return ua.includes("rockchip") || ua.includes("amlogic") || ua.includes("s905") || ua.includes("s912");
 }
 
 function reproducirConPrebuffer(item){
-    // Mostrar loader y luego esconderlo
     var loader = document.getElementById("loaderOverlay");
+    var iframe = document.getElementById("preloadFrame");
     loader.style.display = "flex";
 
-    // Determinar URL final (SD si el dispositivo es lento)
     var urlFinal = item.url;
     if(esDispositivoBasico() && item.url_sd) urlFinal = item.url_sd;
 
-    // Abrir la transmisión al instante
-    loader.style.display = "none";
-    window.location.href = urlFinal;
+    let cargado = false;
+    let timeout;
+
+    iframe.src = urlFinal;
+
+    iframe.onload = function(){
+        if(!cargado){
+            cargado = true;
+            limpiar();
+            window.location.href = urlFinal; // abrir destino real
+        }
+    };
+
+    timeout = setTimeout(function(){
+        if(!cargado){
+            limpiar();
+            window.location.href = urlFinal;
+        }
+    },10000);
+
+    function limpiar(){
+        loader.style.display = "none";
+        iframe.src = "";
+        clearTimeout(timeout);
+    }
 }
 
 document.addEventListener('keydown', function(e){
-    if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
-    var nextFila = filaFocus; var nextItem = itemFocus;
+    if(itemsFocus.length===0 || !itemsFocus[filaFocus]) return;
+    var nextFila = filaFocus; var nextItem = itemFocus;
 
-    if(e.key==="ArrowRight") nextItem=Math.min(itemFocus+1,itemsFocus[filaFocus].length-1);
-    else if(e.key==="ArrowLeft") nextItem=Math.max(itemFocus-1,0);
-    else if(e.key==="ArrowDown"){ nextFila=Math.min(filaFocus+1,itemsFocus.length-1); if(itemsFocus[nextFila]&&itemFocus>=itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1; else nextItem=itemFocus;}
-    else if(e.key==="ArrowUp"){ nextFila=Math.max(filaFocus-1,0); if(itemsFocus[nextFila]&&itemFocus>=itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1; else nextItem=itemFocus;}
-    else if(e.key==="Enter" || e.key===" " || e.keyCode===13){ var current=itemsFocus[filaFocus][itemFocus]; if(current) current.click(); e.preventDefault(); return;}
-    else return;
+    if(e.key==="ArrowRight") nextItem=Math.min(itemFocus+1,itemsFocus[filaFocus].length-1);
+    else if(e.key==="ArrowLeft") nextItem=Math.max(itemFocus-1,0);
+    else if(e.key==="ArrowDown"){ nextFila=Math.min(filaFocus+1,itemsFocus.length-1); if(itemsFocus[nextFila]&&itemFocus>=itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1; else nextItem=itemFocus;}
+    else if(e.key==="ArrowUp"){ nextFila=Math.max(filaFocus-1,0); if(itemsFocus[nextFila]&&itemFocus>=itemsFocus[nextFila].length) nextItem=itemsFocus[nextFila].length-1; else nextItem=itemFocus;}
+    else if(e.key==="Enter" || e.key===" " || e.keyCode===13){ var current=itemsFocus[filaFocus][itemFocus]; if(current) current.click(); e.preventDefault(); return;}
+    else return;
 
-    filaFocus=nextFila; itemFocus=nextItem;
-    localStorage.setItem("filaFocus",filaFocus); localStorage.setItem("itemFocus",itemFocus);
+    filaFocus=nextFila; itemFocus=nextItem;
+    localStorage.setItem("filaFocus",filaFocus); localStorage.setItem("itemFocus",itemFocus);
 
-    var nextElement=itemsFocus[filaFocus][itemFocus];
-    if(nextElement){ nextElement.focus();
-        var container=nextElement.closest('.fila');
-        if(container){ var itemRect=nextElement.getBoundingClientRect(); var containerRect=container.getBoundingClientRect();
-            if(itemRect.left<containerRect.left) container.scrollLeft-=(containerRect.left-itemRect.left)+20;
-            else if(itemRect.right>containerRect.right) container.scrollLeft+=(itemRect.right-containerRect.right)+20;
-        }
-    }
-    e.preventDefault();
+    var nextElement=itemsFocus[filaFocus][itemFocus];
+    if(nextElement){ nextElement.focus();
+        var container=nextElement.closest('.fila');
+        if(container){ var itemRect=nextElement.getBoundingClientRect(); var containerRect=container.getBoundingClientRect();
+            if(itemRect.left<containerRect.left) container.scrollLeft-=(containerRect.left-itemRect.left)+20;
+            else if(itemRect.right>containerRect.right) container.scrollLeft+=(itemRect.right-containerRect.right)+20;
+        }
+    }
+    e.preventDefault();
 });
 
 ref.on("value", function(snapshot){
-    contenedor.innerHTML=""; estructura=[]; itemsFocus=[];
-    snapshot.forEach(function(child){
-        var data=child.val();
-        if(data.subtitulo) estructura.push({subtitulo:data.subtitulo, items:[]});
-        else if(data.titulo && estructura.length>0) estructura[estructura.length-1].items.push(data);
-    });
+    contenedor.innerHTML=""; estructura=[]; itemsFocus=[];
+    snapshot.forEach(function(child){
+        var data=child.val();
+        if(data.subtitulo) estructura.push({subtitulo:data.subtitulo, items:[]});
+        else if(data.titulo && estructura.length>0) estructura[estructura.length-1].items.push(data);
+    });
 
-    estructura.forEach(function(bloque){
-        var subtitulo=document.createElement("h2"); subtitulo.textContent=bloque.subtitulo; contenedor.appendChild(subtitulo);
-        var fila=document.createElement("div"); fila.className="fila"; var itemsEnFila=[];
+    estructura.forEach(function(bloque){
+        var subtitulo=document.createElement("h2"); subtitulo.textContent=bloque.subtitulo; contenedor.appendChild(subtitulo);
+        var fila=document.createElement("div"); fila.className="fila"; var itemsEnFila=[];
 
-        bloque.items.forEach(function(item){
-            var div=document.createElement("div"); div.className="item"; div.setAttribute('tabindex','0');
-            div.onclick=function(){ reproducirConPrebuffer(item); };
-            var img=document.createElement("img"); img.src=item.imagen; img.loading="lazy";
-            var desc=document.createElement("p"); desc.textContent=item.descripcion||item.titulo||"";
-            div.appendChild(img); div.appendChild(desc); fila.appendChild(div); itemsEnFila.push(div);
-        });
+        bloque.items.forEach(function(item){
+            var div=document.createElement("div"); div.className="item"; div.setAttribute('tabindex','0');
+            div.onclick=function(){ reproducirConPrebuffer(item); };
+            var img=document.createElement("img"); img.src=item.imagen; img.loading="lazy";
+            var desc=document.createElement("p"); desc.textContent=item.descripcion||item.titulo||"";
+            div.appendChild(img); div.appendChild(desc); fila.appendChild(div); itemsEnFila.push(div);
+        });
 
-        contenedor.appendChild(fila); itemsFocus.push(itemsEnFila);
-    });
+        contenedor.appendChild(fila); itemsFocus.push(itemsEnFila);
+    });
 
-    let ultimoFila=localStorage.getItem("filaFocus");
-    let ultimoItem=localStorage.getItem("itemFocus");
+    let ultimoFila=localStorage.getItem("filaFocus");
+    let ultimoItem=localStorage.getItem("itemFocus");
 
-    if(ultimoFila!==null && ultimoItem!==null){ filaFocus=parseInt(ultimoFila); itemFocus=parseInt(ultimoItem);}
-    if(itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]) itemsFocus[filaFocus][itemFocus].focus();
-    else { filaFocus=0; itemFocus=0; if(itemsFocus.length>0 && itemsFocus[0].length>0) itemsFocus[0][0].focus(); }
+    if(ultimoFila!==null && ultimoItem!==null){ filaFocus=parseInt(ultimoFila); itemFocus=parseInt(ultimoItem);}
+    if(itemsFocus[filaFocus] && itemsFocus[filaFocus][itemFocus]) itemsFocus[filaFocus][itemFocus].focus();
+    else { filaFocus=0; itemFocus=0; if(itemsFocus.length>0 && itemsFocus[0].length>0) itemsFocus[0][0].focus(); }
 });
 </script>
 </body>
