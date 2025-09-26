@@ -17,30 +17,34 @@ h2 { font-size:28px; margin-top:35px; margin-bottom:15px; border-bottom:2px soli
 .item img { width:100%; height:160px; object-fit:cover; border-radius:10px;}
 .item p { margin:12px 0 0; font-size:16px; font-weight:400; color:#cbd5e1; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
 .item:focus { outline:none; transform:scale(1.15); border:4px solid #00aaff; z-index:10;}
-/* Loader pantalla completa */
+
+/* Loader con countdown */
 #loaderOverlay {
 position: fixed; top:0; left:0; width:100%; height:100%;
-background: rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:2000;
+background: rgba(0,0,0,0.9); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:2000; color:#fff; font-size:20px;
 }
 .spinner {
 border: 10px solid #f3f3f3; border-top: 10px solid #00aaff; border-radius:50%; width:80px; height:80px;
-animation: spin 1s linear infinite;
+animation: spin 1s linear infinite; margin-bottom:20px;
 }
 @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-iframe.oculto {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    left: -9999px;
-    top: -9999px;
-    border: none;
-}
+#countdown { font-size:22px; margin-top:10px; }
+#iframePreload { display:none; width:0; height:0; border:0; }
 </style>
 </head>
 <body>
 <h1>Box Zone TV</h1>
 <div id="contenido"></div>
-<div id="loaderOverlay"><div class="spinner"></div></div>
+
+<!-- Loader con contador -->
+<div id="loaderOverlay">
+  <div class="spinner"></div>
+  <div>Cargando contenido...</div>
+  <div id="countdown">10</div>
+</div>
+
+<!-- Iframe invisible -->
+<iframe id="iframePreload"></iframe>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -64,7 +68,6 @@ var itemsFocus = [];
 var filaFocus = 0;
 var itemFocus = 0;
 
-// Detectar dispositivos lentos
 function esDispositivoBasico(){
     var ua = navigator.userAgent.toLowerCase();
     return ua.includes("rockchip") || ua.includes("amlogic") || ua.includes("s905") || ua.includes("s912");
@@ -72,34 +75,49 @@ function esDispositivoBasico(){
 
 function reproducirConPrebuffer(item){
     var loader = document.getElementById("loaderOverlay");
+    var iframe = document.getElementById("iframePreload");
+    var countdownEl = document.getElementById("countdown");
+
     loader.style.display = "flex";
+    iframe.src = "";
+    iframe.style.display = "none";
 
     var urlFinal = item.url;
     if(esDispositivoBasico() && item.url_sd) urlFinal = item.url_sd;
 
-    // Crear iframe invisible
-    var iframe = document.createElement("iframe");
-    iframe.className = "oculto";
+    let abierto = false;
+    let segundos = 10;
+    countdownEl.textContent = segundos;
+
+    let timer = setInterval(()=>{
+        segundos--;
+        countdownEl.textContent = segundos;
+    },1000);
+
+    // Preload en iframe
     iframe.src = urlFinal;
-    document.body.appendChild(iframe);
 
-    let cerrado = false;
-    let timeout = setTimeout(() => {
-        if(!cerrado){
-            loader.style.display = "none";
-            document.body.removeChild(iframe);
-            cerrado = true;
-        }
-    }, 10000); // máximo 10s
-
+    // Evento de carga rápida
     iframe.onload = () => {
-        if(!cerrado){
+        if(!abierto){
+            clearInterval(timer);
             loader.style.display = "none";
-            clearTimeout(timeout);
-            document.body.removeChild(iframe);
-            cerrado = true;
+            iframe.src = "";
+            window.location.href = urlFinal;
+            abierto = true;
         }
     };
+
+    // Fallback 10s
+    setTimeout(()=>{
+        if(!abierto){
+            clearInterval(timer);
+            loader.style.display = "none";
+            iframe.src = "";
+            window.location.href = urlFinal;
+            abierto = true;
+        }
+    },10000);
 }
 
 document.addEventListener('keydown', function(e){
