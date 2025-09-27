@@ -1,194 +1,158 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Box Zone Film</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Box Zone TV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg-dark: #0f172a;
-  --bg-medium: #1e293b;
-  --text-light: #e2e8f0;
-  --focus: #0ea5e9;
-}
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Roboto, sans-serif;
-  background: var(--bg-dark);
-  color: var(--text-light);
-  overflow-x: hidden;
-}
-header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 10px 20px;
-  background: rgba(0,0,0,0.5);
-  position: absolute;
-  width: 100%;
-  top: 0;
-  z-index: 2;
-}
-.search-container {
-  position: relative;
-}
-.search-container input {
-  display: none;
-  padding: 6px 8px;
-  border-radius: 4px;
-  border: none;
-  outline: none;
-  font-size: 14px;
-}
-.search-container.active input {
-  display: inline-block;
-}
-.search-icon {
-  cursor: pointer;
-  font-size: 20px;
-  margin-left: 10px;
-}
-#slider {
-  position: relative;
-  width: 100%;
-  height: 300px;
-  overflow: hidden;
-}
-#slider img {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity 1s;
-}
-#slider img.active {
-  opacity: 1;
-}
-main {
-  position: relative;
-  z-index: 1;
-  padding: 20px;
-  margin-top: 300px; /* espacio para el slider */
-}
-.section {
-  margin-bottom: 40px;
-}
-.section h2 {
-  font-size: 20px;
-  margin-bottom: 10px;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
-  gap: 12px;
-}
-.item {
-  background: var(--bg-medium);
-  border-radius: 6px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.item img {
-  width: 100%;
-  height: 240px;
-  object-fit: cover;
-}
-.item:hover {
-  transform: scale(1.05);
-}
+    body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background-color: #000;
+        color: white;
+        overflow-x: hidden;
+    }
+    header {
+        background: #111;
+        padding: 15px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+    }
+    /* SLIDER */
+    #slider {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 300px;
+        overflow: hidden;
+        z-index: -1; /* siempre al fondo */
+    }
+    #slider img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+    }
+    #slider img.active {
+        opacity: 1;
+    }
+    /* CONTENIDO */
+    main {
+        padding: 320px 20px 20px; /* deja espacio arriba para ver contenido debajo del slider */
+    }
+    section {
+        margin-bottom: 40px;
+    }
+    h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    .item {
+        background: #222;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .item:hover, .item:focus {
+        transform: scale(1.05);
+        outline: 2px solid #fff;
+    }
+    .item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    .item p {
+        margin: 5px;
+        text-align: center;
+        font-size: 14px;
+    }
 </style>
 </head>
 <body>
-  <div id="slider">
-    <img src="https://via.placeholder.com/1280x300/ff4444/ffffff?text=Slider+1" class="active">
-    <img src="https://via.placeholder.com/1280x300/44ff44/ffffff?text=Slider+2">
-    <img src="https://via.placeholder.com/1280x300/4444ff/ffffff?text=Slider+3">
-  </div>
+<header>📺 Box Zone TV</header>
 
-  <header>
-    <div class="search-container" id="search-container">
-      <input type="text" id="search-input" placeholder="Buscar...">
-      <span class="search-icon" onclick="toggleSearch()">🔍</span>
-    </div>
-  </header>
+<!-- SLIDER -->
+<div id="slider">
+    <img src="https://image.tmdb.org/t/p/w1280/8QVDXDiOGHRcAD4oM6MXjE0osSj.jpg" class="active">
+    <img src="https://image.tmdb.org/t/p/w1280/9yxep7oJdkj3Pla9TD9gKflRApY.jpg">
+    <img src="https://image.tmdb.org/t/p/w1280/tElnmtQ6yz1PjN1kePNl8yMSb59.jpg">
+</div>
 
-  <main id="contenido"></main>
+<main>
+    <section>
+        <h2>🎬 Películas</h2>
+        <div id="peliculas" class="grid"></div>
+    </section>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script>
-var firebaseConfig = {
-  apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-  authDomain: "chunito-d25bb.firebaseapp.com",
-  projectId: "chunito-d25bb",
-  databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
-  storageBucket: "chunito-d25bb.appspot.com",
-  messagingSenderId: "748622352005",
-  appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
-};
-firebase.initializeApp(firebaseConfig);
-var ref = firebase.database().ref("box-zone-estrenos");
-var contenedor = document.getElementById("contenido");
+    <section>
+        <h2>📺 Series</h2>
+        <div id="series" class="grid"></div>
+    </section>
+</main>
 
-// Render dinámico
-ref.on("value", function(snapshot){
-  contenedor.innerHTML="";
-  snapshot.forEach(section=>{
-    var secData=section.val();
-    if(secData.subtitulo){
-      var secDiv=document.createElement("div");
-      secDiv.className="section";
-      secDiv.innerHTML=`<h2>${secData.subtitulo}</h2>`;
-      var grid=document.createElement("div");
-      grid.className="grid";
-      section.forEach(item=>{
-        if(item.key!="subtitulo"){
-          var data=item.val();
-          var itemDiv=document.createElement("div");
-          itemDiv.className="item";
-          itemDiv.innerHTML=`
-            <img src="${data.imagen||'https://via.placeholder.com/300x400'}" alt="">
-            <p style="padding:6px;">${data.titulo||''}</p>
-          `;
-          itemDiv.onclick=()=>window.open(data.url,"_blank");
-          grid.appendChild(itemDiv);
-        }
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+    authDomain: "chunito-d25bb.firebaseapp.com",
+    databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/",
+    projectId: "chunito-d25bb",
+    storageBucket: "chunito-d25bb.appspot.com",
+    messagingSenderId: "748622352005",
+    appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  function cargarSeccion(nodo, contenedorId) {
+    const contenedor = document.getElementById(contenedorId);
+    const refDB = ref(db, nodo);
+    onValue(refDB, (snapshot) => {
+      contenedor.innerHTML = "";
+      snapshot.forEach(child => {
+        const data = child.val();
+        const div = document.createElement("div");
+        div.className = "item";
+        div.tabIndex = 0;
+        div.innerHTML = `
+          <img src="${data.imagen}" alt="${data.titulo}">
+          <p>${data.titulo}</p>
+        `;
+        div.onclick = () => {
+          window.open(data.enlace, "_blank");
+        };
+        contenedor.appendChild(div);
       });
-      secDiv.appendChild(grid);
-      contenedor.appendChild(secDiv);
-    }
-  });
-});
-
-// Buscador
-function toggleSearch(){
-  var sc=document.getElementById("search-container");
-  sc.classList.toggle("active");
-  if(sc.classList.contains("active")){
-    document.getElementById("search-input").focus();
+    });
   }
-}
-document.getElementById("search-input").addEventListener("keyup",function(){
-  let val=this.value.toLowerCase();
-  let items=document.querySelectorAll(".item");
-  items.forEach(el=>{
-    let text=el.innerText.toLowerCase();
-    el.style.display=text.includes(val)?"block":"none";
-  });
-});
 
-// Slider automático
-let sliderImgs=document.querySelectorAll("#slider img");
-let idx=0;
-setInterval(()=>{
-  sliderImgs[idx].classList.remove("active");
-  idx=(idx+1)%sliderImgs.length;
-  sliderImgs[idx].classList.add("active");
-},10000);
+  cargarSeccion("peliculas", "peliculas");
+  cargarSeccion("series", "series");
+
+  // SLIDER automático
+  let slideIndex = 0;
+  const slides = document.querySelectorAll("#slider img");
+  setInterval(() => {
+    slides[slideIndex].classList.remove("active");
+    slideIndex = (slideIndex + 1) % slides.length;
+    slides[slideIndex].classList.add("active");
+  }, 5000);
 </script>
 </body>
 </html>
