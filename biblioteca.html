@@ -1,64 +1,135 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Box Zone Films - Respaldo</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body { background:#0f172a; color:#e2e8f0; font-family:sans-serif; margin:0; padding:20px; }
-h1 { text-align:center; }
-.category { margin-bottom:30px; }
-.movie { background:#1e293b; margin:8px 0; padding:10px; border-radius:6px; }
-.movie img { width:100%; max-width:250px; border-radius:6px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Box Zone Film</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #000;
+      color: #fff;
+    }
+    header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 10px 20px;
+      background: #111;
+    }
+    header input {
+      display: none;
+      padding: 5px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+    }
+    header button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .slider {
+      width: 100%;
+      height: 300px;
+      background: url('https://via.placeholder.com/1200x300/000000/FFFFFF?text=Box+Zone+Film') center/cover no-repeat;
+    }
+    .content {
+      padding: 20px;
+    }
+    h2 {
+      margin: 10px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+    }
+    .item {
+      background: #222;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .item:hover {
+      transform: scale(1.05);
+    }
+    .item img {
+      width: 100%;
+      display: block;
+    }
+    .item p {
+      margin: 5px;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-<h1>Box Zone Films</h1>
-<div id="contenido"></div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script>
-var firebaseConfig = {
-  apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-  authDomain: "chunito-d25bb.firebaseapp.com",
-  databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
-  projectId: "chunito-d25bb",
-  storageBucket: "chunito-d25bb.appspot.com",
-  messagingSenderId: "748622352005",
-  appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
-};
-firebase.initializeApp(firebaseConfig);
+  <header>
+    <button onclick="toggleSearch()">🔍</button>
+    <input type="text" id="searchInput" placeholder="Buscar...">
+  </header>
 
-var ref = firebase.database().ref("box-zone-estrenos");
-var contenedor = document.getElementById("contenido");
+  <div class="slider"></div>
 
-ref.on("value", snapshot=>{
-  contenedor.innerHTML="";
-  snapshot.forEach(sec=>{
-    var secData=sec.val();
-    if(secData.subtitulo){
-      var cat=document.createElement("div");
-      cat.className="category";
-      cat.innerHTML=`<h2>${secData.subtitulo}</h2>`;
-      sec.forEach(item=>{
-        if(item.key!="subtitulo"){
-          var data=item.val();
-          var movie=document.createElement("div");
-          movie.className="movie";
-          movie.innerHTML=`
-            <h3>${data.titulo||''}</h3>
-            ${data.imagen?`<img src="${data.imagen}">`:""}
-            <p>${data.descripcion||''}</p>
-            ${data.url?`<a href="${data.url}" target="_blank">Ver película</a>`:""}
+  <div class="content">
+    <h2>Películas</h2>
+    <div id="movies" class="grid"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // Configuración Firebase (la tuya original)
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+      authDomain: "chunito-d25bb.firebaseapp.com",
+      projectId: "chunito-d25bb",
+      storageBucket: "chunito-d25bb.firebasestorage.app",
+      messagingSenderId: "748622352005",
+      appId: "1:748622352005:web:f9ea6d2da8af92f76123ec",
+      measurementId: "G-DC3XNLCX9Z",
+      databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.database();
+
+    function loadMovies() {
+      const moviesRef = db.ref("peliculas");
+      moviesRef.on("value", snapshot => {
+        const movies = snapshot.val();
+        const container = document.getElementById("movies");
+        container.innerHTML = "";
+        for (let id in movies) {
+          const movie = movies[id];
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <img src="${movie.imagen}" alt="${movie.titulo}">
+            <p>${movie.titulo}</p>
           `;
-          cat.appendChild(movie);
+          div.onclick = () => window.open(movie.enlace, "_blank");
+          container.appendChild(div);
         }
       });
-      contenedor.appendChild(cat);
     }
-  });
-});
-</script>
+    loadMovies();
+
+    function toggleSearch() {
+      const input = document.getElementById("searchInput");
+      input.style.display = input.style.display === "none" || input.style.display === "" ? "block" : "none";
+      if (input.style.display === "block") input.focus();
+    }
+  </script>
 </body>
 </html>
