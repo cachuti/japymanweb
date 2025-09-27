@@ -1,158 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Box Zone TV</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-<style>
+  <meta charset="UTF-8">
+  <title>Box Zone Films</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <style>
     body {
-        margin: 0;
-        font-family: 'Roboto', sans-serif;
-        background-color: #000;
-        color: white;
-        overflow-x: hidden;
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
     }
     header {
-        background: #111;
-        padding: 15px;
-        text-align: center;
-        font-size: 22px;
-        font-weight: bold;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 10px;
+      background: #111;
     }
-    /* SLIDER */
-    #slider {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 300px;
-        overflow: hidden;
-        z-index: -1; /* siempre al fondo */
+    #searchIcon {
+      cursor: pointer;
+      font-size: 20px;
     }
-    #slider img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        position: absolute;
-        opacity: 0;
-        transition: opacity 1s ease-in-out;
+    #searchInput {
+      display: none;
+      margin-left: 10px;
+      padding: 5px;
     }
-    #slider img.active {
-        opacity: 1;
+    .category {
+      padding: 20px;
     }
-    /* CONTENIDO */
-    main {
-        padding: 320px 20px 20px; /* deja espacio arriba para ver contenido debajo del slider */
+    .movies {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
     }
-    section {
-        margin-bottom: 40px;
+    .movie {
+      background: #222;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
     }
-    h2 {
-        font-size: 20px;
-        margin-bottom: 10px;
+    .movie img {
+      max-width: 100%;
+      border-radius: 5px;
     }
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 10px;
-    }
-    .item {
-        background: #222;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: transform 0.3s;
-    }
-    .item:hover, .item:focus {
-        transform: scale(1.05);
-        outline: 2px solid #fff;
-    }
-    .item img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-    }
-    .item p {
-        margin: 5px;
-        text-align: center;
-        font-size: 14px;
-    }
-</style>
+  </style>
 </head>
 <body>
-<header>📺 Box Zone TV</header>
+  <header>
+    <span id="searchIcon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar...">
+  </header>
 
-<!-- SLIDER -->
-<div id="slider">
-    <img src="https://image.tmdb.org/t/p/w1280/8QVDXDiOGHRcAD4oM6MXjE0osSj.jpg" class="active">
-    <img src="https://image.tmdb.org/t/p/w1280/9yxep7oJdkj3Pla9TD9gKflRApY.jpg">
-    <img src="https://image.tmdb.org/t/p/w1280/tElnmtQ6yz1PjN1kePNl8yMSb59.jpg">
-</div>
+  <main id="content"></main>
 
-<main>
-    <section>
-        <h2>🎬 Películas</h2>
-        <div id="peliculas" class="grid"></div>
-    </section>
+  <script>
+    // Firebase config (la tuya, intacta)
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+      authDomain: "chunito-d25bb.firebaseapp.com",
+      databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/",
+      projectId: "chunito-d25bb",
+      storageBucket: "chunito-d25bb.appspot.com",
+      messagingSenderId: "748622352005",
+      appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    <section>
-        <h2>📺 Series</h2>
-        <div id="series" class="grid"></div>
-    </section>
-</main>
+    const content = document.getElementById('content');
+    const searchIcon = document.getElementById('searchIcon');
+    const searchInput = document.getElementById('searchInput');
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    searchIcon.addEventListener('click', () => {
+      searchInput.style.display = searchInput.style.display === 'none' ? 'block' : 'none';
+      if (searchInput.style.display === 'block') searchInput.focus();
+    });
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-    authDomain: "chunito-d25bb.firebaseapp.com",
-    databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/",
-    projectId: "chunito-d25bb",
-    storageBucket: "chunito-d25bb.appspot.com",
-    messagingSenderId: "748622352005",
-    appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
-  };
+    function renderCategory(name, movies) {
+      const section = document.createElement('section');
+      section.className = 'category';
+      const grid = document.createElement('div');
+      grid.className = 'movies';
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+      movies.forEach(movie => {
+        const div = document.createElement('div');
+        div.className = 'movie';
+        div.innerHTML = `<img src="${movie.img}" alt=""><p>${movie.title}</p>`;
+        grid.appendChild(div);
+      });
 
-  function cargarSeccion(nodo, contenedorId) {
-    const contenedor = document.getElementById(contenedorId);
-    const refDB = ref(db, nodo);
-    onValue(refDB, (snapshot) => {
-      contenedor.innerHTML = "";
-      snapshot.forEach(child => {
-        const data = child.val();
-        const div = document.createElement("div");
-        div.className = "item";
-        div.tabIndex = 0;
-        div.innerHTML = `
-          <img src="${data.imagen}" alt="${data.titulo}">
-          <p>${data.titulo}</p>
-        `;
-        div.onclick = () => {
-          window.open(data.enlace, "_blank");
-        };
-        contenedor.appendChild(div);
+      section.appendChild(grid);
+      content.appendChild(section);
+    }
+
+    db.ref("peliculas").on("value", snapshot => {
+      content.innerHTML = "";
+      snapshot.forEach(cat => {
+        renderCategory(cat.key, Object.values(cat.val()));
       });
     });
-  }
-
-  cargarSeccion("peliculas", "peliculas");
-  cargarSeccion("series", "series");
-
-  // SLIDER automático
-  let slideIndex = 0;
-  const slides = document.querySelectorAll("#slider img");
-  setInterval(() => {
-    slides[slideIndex].classList.remove("active");
-    slideIndex = (slideIndex + 1) % slides.length;
-    slides[slideIndex].classList.add("active");
-  }, 5000);
-</script>
+  </script>
 </body>
 </html>
