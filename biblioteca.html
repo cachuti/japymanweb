@@ -1,578 +1,91 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <title>Box Zone Film</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --color-bg-dark: #1a001f;
-            --color-bg-light: #2a0033;
-            --color-text-light: #f5f5f5;
-            --color-text-dim: #bbb;
-            --color-focus-glow: #a020f0; /* Morado brillante */
-            --color-soft-focus: #e0c3ff; /* Color para el foco sin neón */
-        }
-        body {
-            background: linear-gradient(180deg, #2a0033 0%, #1a001f 100%);
-            color: var(--color-text-light);
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 2rem;
-            overflow-x: hidden;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 0 4%;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: rgba(42, 0, 51, 0.9);
-            backdrop-filter: blur(5px);
-            border-bottom: 1px solid rgba(224, 195, 255, 0.1);
-        }
-
-        #main-title {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: #d9b3ff;
-            text-shadow: 0 0 15px rgba(160, 32, 240, 0.8);
-            margin: 0;
-        }
-        
-        .search-container {
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        #search-input {
-            width: 0;
-            padding: 0;
-            border: none;
-            background: transparent;
-            color: var(--color-text-light);
-            font-size: 1.1rem;
-            transition: width 0.4s ease, padding 0.4s ease;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-
-        #search-input.active {
-            width: 250px;
-            padding: 0.5rem 1rem;
-            background: var(--color-bg-light);
-            border-radius: 20px;
-            cursor: text;
-        }
-        
-        #search-input:focus {
-            outline: none;
-            border-color: var(--color-focus-glow);
-        }
-
-        .search-button {
-            background: transparent;
-            border: none;
-            color: var(--color-text-light);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: color 0.3s ease, transform 0.3s ease;
-        }
-
-        .search-button:focus {
-            outline: none;
-            transform: scale(1.1);
-            color: var(--color-focus-glow);
-        }
-
-        .main-container {
-            padding: 0 4%;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #e0c3ff;
-            margin: 2.5rem 0 1.5rem;
-        }
-
-        .carousel {
-            display: flex;
-            overflow-x: auto;
-            gap: 1rem;
-            padding: 1rem 0;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .carousel::-webkit-scrollbar {
-            height: 8px;
-        }
-        .carousel::-webkit-scrollbar-thumb {
-            background: var(--color-bg-light);
-            border-radius: 10px;
-        }
-        .carousel::-webkit-scrollbar-track {
-            background: var(--color-bg-dark);
-        }
-
-        .item-card {
-            flex-shrink: 0;
-            width: 115px; 
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            transition: transform 0.3s ease;
-            outline: none; /* Elimina el contorno de foco por defecto */
-        }
-
-        .item-card:focus {
-            transform: scale(1.12);
-        }
-
-        .item {
-            width: 115px; 
-            height: 170px; 
-            border-radius: 15px;
-            overflow: hidden;
-            border: 3px solid transparent;
-            background: #000;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        
-        .item-card:focus .item {
-            border-color: var(--color-soft-focus); 
-            box-shadow: 0 0 10px 5px var(--color-soft-focus); 
-        }
-
-        .item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .item-title {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--color-text-light);
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 0, 20, 0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .modal.active { display: flex; }
-
-        .modal-content {
-            display: flex;
-            gap: 2rem;
-            background: #2a0033;
-            padding: 2rem;
-            border-radius: 20px;
-            max-width: 65%; 
-            box-shadow: 0 0 30px rgba(160, 32, 240, 0.7);
-        }
-
-        .modal-image {
-            width: 200px; 
-            height: 300px;
-            object-fit: cover;
-            border-radius: 12px;
-        }
-
-        .modal-details {
-            display: flex;
-            flex-direction: column;
-            color: #fff;
-        }
-        .modal-details h3 {
-            font-size: 2.5rem;
-            margin-top: 0;
-            color: #d9b3ff;
-        }
-        .modal-details p {
-            font-size: 1rem;
-            color: var(--color-text-dim);
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: auto;
-        }
-        .modal-button {
-            padding: 0.8rem 2rem;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-        .modal-button.play { background: var(--color-focus-glow); color: white; }
-        .modal-button.back { background: #5a2d82; color: white; }
-        .modal-button:focus { outline: 3px solid #fff; transform: scale(1.05); }
-    </style>
+<meta charset="UTF-8">
+<title>Box Zone Películas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { margin:0; background:#000; color:#fff; font-family:sans-serif; }
+#slider {
+  position:fixed;
+  top:0; left:0;
+  width:100%;
+  height:400px;
+  overflow:hidden;
+  z-index:1;
+}
+#slider img {
+  width:100%;
+  height:400px;
+  object-fit:cover;
+  position:absolute;
+  top:0; left:0;
+  opacity:0;
+  transition:opacity 1s ease-in-out;
+  user-select:none;
+  pointer-events:none;
+}
+#slider img.active { opacity:1; }
+#contenido {
+  position:relative;
+  z-index:2;
+  margin-top:400px;
+  background:#0f172a;
+}
+.categoria {
+  padding:20px;
+  min-height:300px;
+}
+</style>
 </head>
 <body>
-    <div class="header">
-        <h1 id="main-title">Box Zone Film</h1>
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar..." tabindex="-1" />
-            <button id="search-button" class="search-button" tabindex="0">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
-        </div>
-    </div>
-    <div class="main-container">
-        <div id="content-container"></div>
-    </div>
-    
-    <div id="modal-pelicula" class="modal">
-        <div class="modal-content">
-            <img id="modal-imagen" class="modal-image" src="" alt="Imagen de la película">
-            <div class="modal-details">
-                <h3 id="modal-titulo"></h3>
-                <p id="modal-descripcion"></p>
-                <div class="modal-actions">
-                    <a id="btn-reproducir" class="modal-button play" tabindex="0" href="#" target="_blank">▶ Reproducir</a>
-                    <button id="btn-volver" class="modal-button back" tabindex="0">Volver</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
-        var firebaseConfig = {
-            apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-            authDomain: "chunito-d25bb.firebaseapp.com",
-            projectId: "chunito-d25bb",
-            databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
-            storageBucket: "chunito-d25bb.appspot.com",
-            messagingSenderId: "748622352005",
-            appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
-        };
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.database();
-        var ref = db.ref("tuyo");
+<div id="slider"></div>
 
-        var contentContainer = document.getElementById("content-container");
-        var modal = document.getElementById("modal-pelicula");
-        var btnReproducir = document.getElementById("btn-reproducir");
-        var btnVolver = document.getElementById("btn-volver");
-        var searchInput = document.getElementById("search-input");
-        var searchButton = document.getElementById("search-button");
+<div id="contenido">
+  <div class="categoria" id="cat1"><h2>Categoría 1</h2></div>
+  <div class="categoria" id="cat2"><h2>Categoría 2</h2></div>
+  <div class="categoria" id="cat3"><h2>Categoría 3</h2></div>
+</div>
 
-        var allItems = [];
-        var allCategories = [];
-        var rows = [];
-        var isModalActive = false;
-        var lastFocusedElement = null;
-        var isSearchActive = false;
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+  authDomain: "chunito-d25bb.firebaseapp.com",
+  projectId: "chunito-d25bb",
+  databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
+  storageBucket: "chunito-d25bb.appspot.com",
+  messagingSenderId: "748622352005",
+  appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
+};
+firebase.initializeApp(firebaseConfig);
 
-        function renderContent(data) {
-            contentContainer.innerHTML = "";
-            allItems = [];
-            rows = [];
-            
-            let tempRows = [];
-            data.forEach(category => {
-                let row = { title: category.title, items: [] };
-                category.items.forEach(item => {
-                    let itemCard = document.createElement('div');
-                    itemCard.className = "item-card";
-                    itemCard.setAttribute('tabindex', '0');
-                    itemCard.setAttribute('data-titulo', item.titulo);
-                    itemCard.setAttribute('data-descripcion', item.descripcion);
-                    itemCard.setAttribute('data-imagen', item.imagen);
-                    itemCard.setAttribute('data-url', item.url);
-                    itemCard.innerHTML = `
-                        <div class="item">
-                            <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
-                        </div>
-                        <span class="item-title">${item.titulo}</span>
-                    `;
-                    row.items.push(itemCard);
-                });
-                tempRows.push(row);
-            });
-            
-            tempRows.forEach(row => {
-                let sectionTitle = document.createElement('h2');
-                sectionTitle.className = "section-title";
-                sectionTitle.textContent = row.title;
-                contentContainer.appendChild(sectionTitle);
+var sliderRef=firebase.database().ref("slider");
+var sliderDiv=document.getElementById("slider");
+var images=[];
+var current=0;
 
-                let carousel = document.createElement('div');
-                carousel.className = "carousel";
-                row.items.forEach(item => {
-                    carousel.appendChild(item);
-                });
-                contentContainer.appendChild(carousel);
-                
-                rows.push(carousel);
-                allItems.push(row.items);
-            });
-
-            if (allItems.length > 0 && allItems[0].length > 0) {
-                setTimeout(() => allItems[0][0].focus(), 100);
-            }
-        }
-
-        function filterContent(query) {
-            query = query.toLowerCase();
-            contentContainer.innerHTML = "";
-            allItems = [];
-            rows = [];
-
-            if (query === "") {
-                renderContent(allCategories);
-                return;
-            }
-
-            let filteredItems = [];
-            let allItemsFlat = [].concat(...allCategories.map(cat => cat.items));
-
-            let tempRow = { title: "Resultados de la búsqueda", items: [] };
-            
-            allItemsFlat.forEach(item => {
-                if (item.titulo.toLowerCase().includes(query)) {
-                    let itemCard = document.createElement('div');
-                    itemCard.className = "item-card";
-                    itemCard.setAttribute('tabindex', '0');
-                    itemCard.setAttribute('data-titulo', item.titulo);
-                    itemCard.setAttribute('data-descripcion', item.descripcion);
-                    itemCard.setAttribute('data-imagen', item.imagen);
-                    itemCard.setAttribute('data-url', item.url);
-                    itemCard.innerHTML = `
-                        <div class="item">
-                            <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
-                        </div>
-                        <span class="item-title">${item.titulo}</span>
-                    `;
-                    tempRow.items.push(itemCard);
-                }
-            });
-
-            if (tempRow.items.length > 0) {
-                let sectionTitle = document.createElement('h2');
-                sectionTitle.className = "section-title";
-                sectionTitle.textContent = tempRow.title;
-                contentContainer.appendChild(sectionTitle);
-                
-                let carousel = document.createElement('div');
-                carousel.className = "carousel";
-                tempRow.items.forEach(item => {
-                    carousel.appendChild(item);
-                });
-                contentContainer.appendChild(carousel);
-
-                rows.push(carousel);
-                allItems.push(tempRow.items);
-            } else {
-                let noResults = document.createElement('p');
-                noResults.textContent = "No se encontraron resultados.";
-                noResults.style.textAlign = 'center';
-                noResults.style.marginTop = '2rem';
-                contentContainer.appendChild(noResults);
-            }
-
-            if (allItems.length > 0 && allItems[0].length > 0) {
-                setTimeout(() => allItems[0][0].focus(), 100);
-            }
-        }
-        
-        ref.on("value", function(snapshot) {
-            const categoriesData = [];
-            snapshot.forEach(function(categorySnapshot) {
-                const category = {
-                    title: categorySnapshot.val().subtitulo,
-                    items: []
-                };
-                categorySnapshot.forEach(function(itemSnapshot) {
-                    if (itemSnapshot.key !== "subtitulo") {
-                        category.items.push(itemSnapshot.val());
-                    }
-                });
-                if (category.items.length > 0) {
-                    categoriesData.push(category);
-                }
-            });
-            allCategories = categoriesData;
-            renderContent(allCategories);
-        });
-
-        function openModal(itemData) {
-            document.getElementById("modal-imagen").src = itemData.imagen;
-            document.getElementById("modal-titulo").textContent = itemData.titulo;
-            document.getElementById("modal-descripcion").textContent = itemData.descripcion;
-            btnReproducir.href = itemData.url;
-            modal.classList.add("active");
-            isModalActive = true;
-            btnReproducir.focus();
-        }
-
-        function closeModal() {
-            modal.classList.remove("active");
-            isModalActive = false;
-            if (lastFocusedElement) {
-                lastFocusedElement.focus();
-            }
-        }
-        
-        btnVolver.onclick = closeModal;
-
-        searchButton.onclick = function() {
-            isSearchActive = !isSearchActive;
-            if (isSearchActive) {
-                searchInput.classList.add('active');
-                searchInput.setAttribute('tabindex', '0');
-                searchInput.focus();
-            } else {
-                searchInput.classList.remove('active');
-                searchInput.setAttribute('tabindex', '-1');
-                searchInput.value = "";
-                filterContent("");
-                if (lastFocusedElement) {
-                    lastFocusedElement.focus();
-                } else {
-                    allItems[0][0].focus();
-                }
-            }
-        };
-
-        searchInput.addEventListener('input', function(e) {
-            filterContent(e.target.value);
-        });
-
-        document.addEventListener('keydown', function(e) {
-            let focusedElement = document.activeElement;
-
-            if (isModalActive) {
-                if (e.key === "ArrowRight") { btnVolver.focus(); }
-                else if (e.key === "ArrowLeft") { btnReproducir.focus(); }
-                else if (e.key === "Enter") { focusedElement.click(); }
-                else if (e.key === "Escape" || e.key === "Backspace") { closeModal(); }
-                return;
-            }
-
-            if (focusedElement === searchButton) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    searchButton.click();
-                }
-                return;
-            }
-
-            if (focusedElement === searchInput) {
-                if (e.key === "Escape" || e.key === "Backspace") {
-                    e.preventDefault();
-                    searchInput.value = "";
-                    filterContent("");
-                    searchButton.focus();
-                }
-                return;
-            }
-
-            let isItemFocused = focusedElement && focusedElement.closest('.item-card');
-            let newFocusedElement = focusedElement;
-
-            if (isItemFocused) {
-                let currentItemRow = -1;
-                let currentItemIndexInRow = -1;
-                
-                for(let r = 0; r < allItems.length; r++) {
-                    let idx = allItems[r].findIndex(item => item === focusedElement);
-                    if (idx !== -1) {
-                        currentItemRow = r;
-                        currentItemIndexInRow = idx;
-                        break;
-                    }
-                }
-
-                if (e.key === "ArrowRight" && currentItemIndexInRow < allItems[currentItemRow].length - 1) {
-                    newFocusedElement = allItems[currentItemRow][currentItemIndexInRow + 1];
-                } else if (e.key === "ArrowLeft" && currentItemIndexInRow > 0) {
-                    newFocusedElement = allItems[currentItemRow][currentItemIndexInRow - 1];
-                } else if (e.key === "ArrowDown" && currentItemRow < allItems.length - 1) {
-                    let nextRowItems = allItems[currentItemRow + 1];
-                    let nextItemIndex = Math.min(currentItemIndexInRow, nextRowItems.length - 1);
-                    newFocusedElement = nextRowItems[nextItemIndex];
-                } else if (e.key === "ArrowUp") {
-                    if (currentItemRow > 0) {
-                        let prevRowItems = allItems[currentItemRow - 1];
-                        let prevItemIndex = Math.min(currentItemIndexInRow, prevRowItems.length - 1);
-                        newFocusedElement = prevRowItems[prevItemIndex];
-                    } else {
-                        // Si está en la primera fila, el foco va a la lupa
-                        newFocusedElement = searchButton;
-                    }
-                } else if (e.key === "Enter") {
-                    lastFocusedElement = focusedElement;
-                    focusedElement.click();
-                    return;
-                }
-            } else if (focusedElement === searchButton) {
-                if (e.key === "ArrowDown" && allItems.length > 0) {
-                    newFocusedElement = allItems[0][0];
-                }
-            }
-            
-            if (newFocusedElement && newFocusedElement !== focusedElement) {
-                newFocusedElement.focus();
-                if (newFocusedElement.closest('.carousel')) {
-                    newFocusedElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-                }
-            }
-        });
-
-        document.addEventListener('click', function(e) {
-            let item = e.target.closest('.item-card');
-            if (item) {
-                let data = {
-                    titulo: item.getAttribute('data-titulo'),
-                    descripcion: item.getAttribute('data-descripcion'),
-                    imagen: item.getAttribute('data-imagen'),
-                    url: item.getAttribute('data-url')
-                };
-                lastFocusedElement = item;
-                openModal(data);
-            }
-        });
-
-        // Asegurar que el foco inicial sea la lupa
-        window.onload = function() {
-            setTimeout(() => searchButton.focus(), 500);
-        };
-    </script>
+sliderRef.on("value",snap=>{
+  sliderDiv.innerHTML="";
+  images=[];
+  snap.forEach(img=>{
+    var data=img.val();
+    var el=document.createElement("img");
+    el.src=data.url;
+    sliderDiv.appendChild(el);
+    images.push(el);
+  });
+  if(images.length>0){
+    current=0;
+    images[0].classList.add("active");
+    setInterval(()=>{
+      images[current].classList.remove("active");
+      current=(current+1)%images.length;
+      images[current].classList.add("active");
+    },10000);
+  }
+});
+</script>
 </body>
 </html>
