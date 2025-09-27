@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Box Zone Film</title>
@@ -7,89 +7,79 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background-color: #000;
-      color: #fff;
+    body { 
+      background: #000; 
+      color: #fff; 
+      font-family: 'Roboto', sans-serif; 
+      margin: 0; 
+      padding: 0; 
     }
-    header {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 10px 20px;
-      background: #111;
+    header { 
+      text-align: center; 
+      padding: 20px; 
+      font-size: 24px; 
+      font-weight: bold; 
     }
-    header input {
-      display: none;
-      padding: 5px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
+    /* Slider */
+    .slider { 
+      width: 100%; 
+      max-height: 300px; 
+      overflow: hidden; 
+      position: relative; 
     }
-    header button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 22px;
-      cursor: pointer;
+    .slides { 
+      display: flex; 
+      transition: transform 0.5s ease-in-out; 
     }
-    .slider {
-      width: 100%;
-      height: 300px;
-      background: url('https://via.placeholder.com/1200x300/000000/FFFFFF?text=Box+Zone+Film') center/cover no-repeat;
+    .slides img { 
+      width: 100%; 
+      object-fit: cover; 
     }
-    .content {
-      padding: 20px;
+    /* Grid de películas */
+    .grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+      gap: 10px; 
+      padding: 10px; 
     }
-    h2 {
-      margin: 10px 0;
+    .item { 
+      background: #111; 
+      border-radius: 8px; 
+      overflow: hidden; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: transform 0.2s; 
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 15px;
+    .item:hover { 
+      transform: scale(1.05); 
     }
-    .item {
-      background: #222;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.2s;
+    .item img { 
+      width: 100%; 
+      height: 200px; 
+      object-fit: cover; 
     }
-    .item:hover {
-      transform: scale(1.05);
-    }
-    .item img {
-      width: 100%;
-      display: block;
-    }
-    .item p {
-      margin: 5px;
-      font-size: 14px;
-      text-align: center;
+    .item p { 
+      margin: 5px 0; 
+      font-size: 14px; 
     }
   </style>
 </head>
 <body>
+  <header>🎬 Box Zone Film</header>
 
-  <header>
-    <button onclick="toggleSearch()">🔍</button>
-    <input type="text" id="searchInput" placeholder="Buscar...">
-  </header>
-
-  <div class="slider"></div>
-
-  <div class="content">
-    <h2>Películas</h2>
-    <div id="movies" class="grid"></div>
+  <!-- Slider -->
+  <div class="slider">
+    <div class="slides" id="slider"></div>
   </div>
 
+  <!-- Grid de películas -->
+  <div class="grid" id="peliculas"></div>
+
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    // Configuración Firebase (la tuya original)
+    // Configuración Firebase (la tuya)
     const firebaseConfig = {
       apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
       authDomain: "chunito-d25bb.firebaseapp.com",
@@ -100,36 +90,41 @@
       measurementId: "G-DC3XNLCX9Z",
       databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/"
     };
-    firebase.initializeApp(firebaseConfig);
 
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function loadMovies() {
-      const moviesRef = db.ref("peliculas");
-      moviesRef.on("value", snapshot => {
-        const movies = snapshot.val();
-        const container = document.getElementById("movies");
-        container.innerHTML = "";
-        for (let id in movies) {
-          const movie = movies[id];
-          const div = document.createElement("div");
-          div.className = "item";
-          div.innerHTML = `
-            <img src="${movie.imagen}" alt="${movie.titulo}">
-            <p>${movie.titulo}</p>
-          `;
-          div.onclick = () => window.open(movie.enlace, "_blank");
-          container.appendChild(div);
-        }
+    // SLIDER (nodo "slider")
+    const sliderRef = db.ref("slider");
+    sliderRef.on("value", snapshot => {
+      const slider = document.getElementById("slider");
+      slider.innerHTML = "";
+      snapshot.forEach(child => {
+        const data = child.val();
+        const img = document.createElement("img");
+        img.src = data.imagen;
+        img.alt = data.titulo || "Slider";
+        slider.appendChild(img);
       });
-    }
-    loadMovies();
+    });
 
-    function toggleSearch() {
-      const input = document.getElementById("searchInput");
-      input.style.display = input.style.display === "none" || input.style.display === "" ? "block" : "none";
-      if (input.style.display === "block") input.focus();
-    }
+    // PELÍCULAS (nodo "box-zone-estrenos")
+    const pelisRef = db.ref("box-zone-estrenos");
+    pelisRef.on("value", snapshot => {
+      const grid = document.getElementById("peliculas");
+      grid.innerHTML = "";
+      snapshot.forEach(child => {
+        const data = child.val();
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <img src="${data.imagen}" alt="${data.titulo}">
+          <p>${data.titulo}</p>
+        `;
+        div.onclick = () => window.open(data.enlace, "_blank");
+        grid.appendChild(div);
+      });
+    });
   </script>
 </body>
 </html>
