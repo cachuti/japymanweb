@@ -97,16 +97,16 @@
 
         /* === SLIDER DECORATIVO (quirúrgico) ===
            - 3 imágenes máximo
-           - 400px alto
+           - 200px alto (REDUCIDO)
            - fijo, no seleccionable, no clickeable (pointer-events: none)
            - carga desde Firebase nodo "slider" si existe
         */
         #decor-slider {
             position: fixed;
-            top: 0; /* se ajusta dinámicamente debajo del header */
+            top: 0; /* arranca desde la parte superior de la pantalla (viewport) */
             left: 0;
             width: 100%;
-            height: 400px;
+            height: 200px; /* <- REDUCIDO a 200px */
             overflow: hidden;
             z-index: 10; /* detrás del header, delante del fondo */
             pointer-events: none; /* decorativo: no interactivo */
@@ -349,19 +349,19 @@
         var sliderSlides = [];
         var sliderInterval = null;
         var sliderCurrent = 0;
-        var SLIDER_HEIGHT = 400; // px
+        var SLIDER_HEIGHT = 200; // <- REDUCIDO a 200px
 
         function adjustLayoutForSlider(){
-            // ajusta top del slider debajo del header y el padding-top del main-container
+            // colocamos el slider desde el inicio del viewport (top: 0)
+            if(decorSliderElem){
+                decorSliderElem.style.top = '0px';
+            }
             var headerElem = document.querySelector('.header');
             var headerH = headerElem ? headerElem.offsetHeight : 0;
-            if(decorSliderElem){
-                decorSliderElem.style.top = headerH + 'px';
-            }
             var mainCont = document.querySelector('.main-container');
             if(mainCont){
                 // dejamos que el contenido comience dentro de la parte baja del slider (superpuesto)
-                // usamos slider height - 120 para mantener parte del slider visible arriba
+                // mantenemos una porción visible del slider; overlayOffset se basa en SLIDER_HEIGHT
                 var overlayOffset = Math.max(200, SLIDER_HEIGHT - 120);
                 mainCont.style.paddingTop = (headerH + overlayOffset) + 'px';
             }
@@ -389,12 +389,12 @@
                     }
                 }
             });
-            // si no hay imágenes en Firebase: placeholders
+            // si no hay imágenes en Firebase: placeholders (tamaño ajustado 1600x200)
             if(sliderSlides.length === 0){
                 var defaults = [
-                    'https://picsum.photos/id/1015/1600/400',
-                    'https://picsum.photos/id/1016/1600/400',
-                    'https://picsum.photos/id/1018/1600/400'
+                    'https://picsum.photos/1600/200?random=1015',
+                    'https://picsum.photos/1600/200?random=1016',
+                    'https://picsum.photos/1600/200?random=1018'
                 ];
                 defaults.forEach(function(u){
                     var img = document.createElement('img');
@@ -613,9 +613,26 @@
             }
         };
 
-        searchInput.addEventListener('input', function(e) {
-            filterContent(e.target.value);
+        // ---- MODIFICACIÓN: el buscador NO busca mientras escribís.
+        // Solo ejecuta la búsqueda al presionar Enter.
+        // (Escape / Backspace siguen limpiando y devolviendo foco a la lupa)
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                filterContent(searchInput.value.trim());
+                return;
+            }
+            // permitimos Escape/Backspace limpiar desde el propio input también
+            if (e.key === "Escape" || e.key === "Backspace") {
+                e.preventDefault();
+                searchInput.value = "";
+                filterContent("");
+                searchButton.focus();
+                return;
+            }
         });
+
+        // (Quité el listener 'input' para evitar filtrar mientras se escribe)
 
         document.addEventListener('keydown', function(e) {
             let focusedElement = document.activeElement;
@@ -636,13 +653,8 @@
                 return;
             }
 
+            // Si el foco está en el input de búsqueda, devolvemos aquí (ya manejamos Enter/Escape/Backspace arriba)
             if (focusedElement === searchInput) {
-                if (e.key === "Escape" || e.key === "Backspace") {
-                    e.preventDefault();
-                    searchInput.value = "";
-                    filterContent("");
-                    searchButton.focus();
-                }
                 return;
             }
 
