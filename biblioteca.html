@@ -1,745 +1,238 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <title>Box Zone Film</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --color-bg-dark: #1a001f;
-            --color-bg-light: #2a0033;
-            --color-text-light: #f5f5f5;
-            --color-text-dim: #bbb;
-            --color-focus-glow: #a020f0; /* Morado brillante */
-            --color-soft-focus: #e0c3ff; /* Color para el foco sin neón */
-        }
-        body {
-            background: linear-gradient(180deg, #2a0033 0%, #1a001f 100%);
-            color: var(--color-text-light);
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 2rem;
-            overflow-x: hidden;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 0 4%;
-            position: sticky;
-            top: 0;
-            z-index: 60; /* alto para quedar sobre el slider */
-            background: rgba(42, 0, 51, 0.9);
-            backdrop-filter: blur(5px);
-            border-bottom: 1px solid rgba(224, 195, 255, 0.1);
-        }
-
-        #main-title {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: #d9b3ff;
-            text-shadow: 0 0 15px rgba(160, 32, 240, 0.8);
-            margin: 0;
-        }
-        
-        .search-container {
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        #search-input {
-            width: 0;
-            padding: 0;
-            border: none;
-            background: transparent;
-            color: var(--color-text-light);
-            font-size: 1.1rem;
-            transition: width 0.4s ease, padding 0.4s ease;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-
-        #search-input.active {
-            width: 250px;
-            padding: 0.5rem 1rem;
-            background: var(--color-bg-light);
-            border-radius: 20px;
-            cursor: text;
-        }
-        
-        #search-input:focus {
-            outline: none;
-            border-color: var(--color-focus-glow);
-        }
-
-        .search-button {
-            background: transparent;
-            border: none;
-            color: var(--color-text-light);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: color 0.3s ease, transform 0.3s ease;
-        }
-
-        .search-button:focus {
-            outline: none;
-            transform: scale(1.1);
-            color: var(--color-focus-glow);
-        }
-
-        /* === SLIDER DECORATIVO (quirúrgico) ===
-           - 3 imágenes máximo
-           - 200px alto (REDUCIDO)
-           - fijo, no seleccionable, no clickeable (pointer-events: none)
-           - carga desde Firebase nodo "slider" si existe
-        */
-        #decor-slider {
-            position: fixed;
-            top: 0; /* arranca desde la parte superior de la pantalla (viewport) */
-            left: 0;
-            width: 100%;
-            height: 200px; /* <- REDUCIDO a 200px */
-            overflow: hidden;
-            z-index: 10; /* detrás del header, delante del fondo */
-            pointer-events: none; /* decorativo: no interactivo */
-            user-select: none;
-        }
-        #decor-slider .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 1s ease;
-            -webkit-user-drag: none;
-            user-drag: none;
-        }
-        #decor-slider .slide.active {
-            opacity: 1;
-        }
-
-        .main-container {
-            padding: 0 4%;
-            position: relative;
-            z-index: 20; /* contenido encima del slider */
-            /* el padding-top para separar del header/slider se ajusta vía JS para ser quirúrgico */
-        }
-
-        .section-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #e0c3ff;
-            margin: 2.5rem 0 1.5rem;
-        }
-
-        .carousel {
-            display: flex;
-            overflow-x: auto;
-            gap: 1rem;
-            padding: 1rem 0;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .carousel::-webkit-scrollbar {
-            height: 8px;
-        }
-        .carousel::-webkit-scrollbar-thumb {
-            background: var(--color-bg-light);
-            border-radius: 10px;
-        }
-        .carousel::-webkit-scrollbar-track {
-            background: var(--color-bg-dark);
-        }
-
-        .item-card {
-            flex-shrink: 0;
-            width: 115px; 
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            transition: transform 0.3s ease;
-            outline: none; /* Elimina el contorno de foco por defecto */
-        }
-
-        .item-card:focus {
-            transform: scale(1.12);
-        }
-
-        .item {
-            width: 115px; 
-            height: 170px; 
-            border-radius: 15px;
-            overflow: hidden;
-            border: 3px solid transparent;
-            background: #000;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        
-        .item-card:focus .item {
-            border-color: var(--color-soft-focus); 
-            box-shadow: 0 0 10px 5px var(--color-soft-focus); 
-        }
-
-        .item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .item-title {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--color-text-light);
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 0, 20, 0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .modal.active { display: flex; }
-
-        .modal-content {
-            display: flex;
-            gap: 2rem;
-            background: #2a0033;
-            padding: 2rem;
-            border-radius: 20px;
-            max-width: 65%; 
-            box-shadow: 0 0 30px rgba(160, 32, 240, 0.7);
-        }
-
-        .modal-image {
-            width: 200px; 
-            height: 300px;
-            object-fit: cover;
-            border-radius: 12px;
-        }
-
-        .modal-details {
-            display: flex;
-            flex-direction: column;
-            color: #fff;
-        }
-        .modal-details h3 {
-            font-size: 2.5rem;
-            margin-top: 0;
-            color: #d9b3ff;
-        }
-        .modal-details p {
-            font-size: 1rem;
-            color: var(--color-text-dim);
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: auto;
-        }
-        .modal-button {
-            padding: 0.8rem 2rem;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-        .modal-button.play { background: var(--color-focus-glow); color: white; }
-        .modal-button.back { background: #5a2d82; color: white; }
-        .modal-button:focus { outline: 3px solid #fff; transform: scale(1.05); }
-    </style>
+  <meta charset="UTF-8">
+  <title>Box Zone Film</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-medium: #1e293b;
+      --text-light: #e2e8f0;
+      --focus: #0ea5e9;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-light);
+      overflow-x: hidden;
+    }
+    /* === SLIDER === */
+    #decor-slider {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 300px; /* aumentado */
+      overflow: hidden;
+      z-index: 10;
+      pointer-events: none;
+      user-select: none;
+    }
+    #decor-slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+    #decor-slider img.active {
+      opacity: 1;
+    }
+    /* HEADER solo lupa */
+    .header {
+      position: relative;
+      z-index: 20;
+      margin-top: 320px; /* debajo del slider */
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+    }
+    .search-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #search-input {
+      display: none;
+      padding: 8px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      background: #2e3e56;
+      color: var(--text-light);
+      font-size: 16px;
+    }
+    #search-input.active {
+      display: block;
+    }
+    .search-button {
+      background: var(--focus);
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #fff;
+    }
+    /* SECCIONES */
+    .section-title {
+      font-size: 20px;
+      margin: 20px 10px 10px;
+    }
+    .carousel {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 0 10px 20px;
+    }
+    .item-card {
+      width: 160px;
+      flex-shrink: 0;
+      outline: none;
+      cursor: pointer;
+    }
+    .item-card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    .item-title {
+      display: block;
+      text-align: center;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+    .item-card:focus {
+      border: 2px solid var(--focus);
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1 id="main-title">Box Zone Film</h1>
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar..." tabindex="-1" />
-            <button id="search-button" class="search-button" tabindex="0">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
-        </div>
+  <!-- SLIDER -->
+  <div id="decor-slider"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Buscar..." tabindex="-1">
+      <button id="search-button" class="search-button" tabindex="0">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
     </div>
+  </div>
 
-    <!-- === SLIDER DECORATIVO (no seleccionable) === -->
-    <div id="decor-slider" aria-hidden="true">
-        <!-- Se llenará desde Firebase (nodo "slider") o caerán placeholders si no hay -->
-    </div>
+  <!-- CONTENIDO -->
+  <div id="content-container"></div>
 
-    <div class="main-container">
-        <div id="content-container"></div>
-    </div>
-    
-    <div id="modal-pelicula" class="modal">
-        <div class="modal-content">
-            <img id="modal-imagen" class="modal-image" src="" alt="Imagen de la película">
-            <div class="modal-details">
-                <h3 id="modal-titulo"></h3>
-                <p id="modal-descripcion"></p>
-                <div class="modal-actions">
-                    <a id="btn-reproducir" class="modal-button play" tabindex="0" href="#" target="_blank">▶ Reproducir</a>
-                    <button id="btn-volver" class="modal-button back" tabindex="0">Volver</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
-        var firebaseConfig = {
-            apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-            authDomain: "chunito-d25bb.firebaseapp.com",
-            projectId: "chunito-d25bb",
-            databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
-            storageBucket: "chunito-d25bb.appspot.com",
-            messagingSenderId: "748622352005",
-            appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
-        };
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.database();
-        var ref = db.ref("tuyo");
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // Configuración Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+      authDomain: "chunito-d25bb.firebaseapp.com",
+      databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com",
+      projectId: "chunito-d25bb",
+      storageBucket: "chunito-d25bb.appspot.com",
+      messagingSenderId: "748622352005",
+      appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var ref = firebase.database().ref("box-zone-estrenos");
 
-        // Nodo para el slider (se lee pero no modifica la lógica principal)
-        var sliderRef = db.ref("slider");
+    const contentContainer = document.getElementById("content-container");
+    const searchInput = document.getElementById("search-input");
+    const searchButton = document.getElementById("search-button");
 
-        var contentContainer = document.getElementById("content-container");
-        var modal = document.getElementById("modal-pelicula");
-        var btnReproducir = document.getElementById("btn-reproducir");
-        var btnVolver = document.getElementById("btn-volver");
-        var searchInput = document.getElementById("search-input");
-        var searchButton = document.getElementById("search-button");
+    let allItems = [];
+    let rows = [];
 
-        var allItems = [];
-        var allCategories = [];
-        var rows = [];
-        var isModalActive = false;
-        var lastFocusedElement = null;
-        var isSearchActive = false;
+    // Render contenido
+    function renderContent(data) {
+      contentContainer.innerHTML = "";
+      allItems = [];
+      rows = [];
 
-        // === variables slider ===
-        var decorSliderElem = document.getElementById('decor-slider');
-        var sliderSlides = [];
-        var sliderInterval = null;
-        var sliderCurrent = 0;
-        var SLIDER_HEIGHT = 200; // <- REDUCIDO a 200px
+      data.forEach(category => {
+        let sectionTitle = document.createElement('h2');
+        sectionTitle.className = "section-title";
+        sectionTitle.textContent = category.subtitulo || category.title || "Categoría";
+        contentContainer.appendChild(sectionTitle);
 
-        function adjustLayoutForSlider(){
-            // colocamos el slider desde el inicio del viewport (top: 0)
-            if(decorSliderElem){
-                decorSliderElem.style.top = '0px';
-            }
-            var headerElem = document.querySelector('.header');
-            var headerH = headerElem ? headerElem.offsetHeight : 0;
-            var mainCont = document.querySelector('.main-container');
-            if(mainCont){
-                // dejamos que el contenido comience dentro de la parte baja del slider (superpuesto)
-                // mantenemos una porción visible del slider; overlayOffset se basa en SLIDER_HEIGHT
-                var overlayOffset = Math.max(200, SLIDER_HEIGHT - 120);
-                mainCont.style.paddingTop = (headerH + overlayOffset) + 'px';
-            }
-        }
+        let carousel = document.createElement('div');
+        carousel.className = "carousel";
 
-        // inicializa/actualiza slider desde Firebase (max 3 imágenes)
-        sliderRef.on("value", function(snapshot){
-            sliderSlides = [];
-            if(!decorSliderElem) decorSliderElem = document.getElementById('decor-slider');
-            decorSliderElem.innerHTML = '';
-            var count = 0;
-            snapshot.forEach(function(childSnap){
-                if(count < 3){
-                    var data = childSnap.val();
-                    var url = (data && data.url) ? data.url : (typeof data === 'string' ? data : '');
-                    if(url){
-                        var img = document.createElement('img');
-                        img.className = 'slide';
-                        img.src = url;
-                        img.setAttribute('draggable','false');
-                        img.alt = '';
-                        decorSliderElem.appendChild(img);
-                        sliderSlides.push(img);
-                        count++;
-                    }
-                }
-            });
-            // si no hay imágenes en Firebase: placeholders (tamaño ajustado 1600x200)
-            if(sliderSlides.length === 0){
-                var defaults = [
-                    'https://picsum.photos/1600/200?random=1015',
-                    'https://picsum.photos/1600/200?random=1016',
-                    'https://picsum.photos/1600/200?random=1018'
-                ];
-                defaults.forEach(function(u){
-                    var img = document.createElement('img');
-                    img.className = 'slide';
-                    img.src = u;
-                    img.setAttribute('draggable','false');
-                    img.alt = '';
-                    decorSliderElem.appendChild(img);
-                    sliderSlides.push(img);
-                });
-            }
-            // activar primera y arrancar intervalo (limpia previo)
-            sliderSlides.forEach(function(s){ s.classList.remove('active'); });
-            sliderCurrent = 0;
-            sliderSlides[0].classList.add('active');
-            if(sliderInterval) clearInterval(sliderInterval);
-            if(sliderSlides.length > 1){
-                sliderInterval = setInterval(function(){
-                    sliderSlides[sliderCurrent].classList.remove('active');
-                    sliderCurrent = (sliderCurrent + 1) % sliderSlides.length;
-                    sliderSlides[sliderCurrent].classList.add('active');
-                }, 10000);
-            }
-            // ajustar layout
-            adjustLayoutForSlider();
+        let rowItems = [];
+        Object.entries(category).forEach(([k, item]) => {
+          if (k !== "subtitulo") {
+            let card = document.createElement('div');
+            card.className = "item-card";
+            card.tabIndex = 0;
+            card.innerHTML = `
+              <img src="${item.imagen}" alt="${item.titulo}">
+              <span class="item-title">${item.titulo}</span>
+            `;
+            carousel.appendChild(card);
+            rowItems.push(card);
+          }
         });
+        contentContainer.appendChild(carousel);
+        rows.push(carousel);
+        allItems.push(rowItems);
+      });
+    }
 
-        function renderContent(data) {
-            contentContainer.innerHTML = "";
-            allItems = [];
-            rows = [];
-            
-            let tempRows = [];
-            data.forEach(category => {
-                let row = { title: category.title, items: [] };
-                category.items.forEach(item => {
-                    let itemCard = document.createElement('div');
-                    itemCard.className = "item-card";
-                    itemCard.setAttribute('tabindex', '0');
-                    itemCard.setAttribute('data-titulo', item.titulo);
-                    itemCard.setAttribute('data-descripcion', item.descripcion);
-                    itemCard.setAttribute('data-imagen', item.imagen);
-                    itemCard.setAttribute('data-url', item.url);
-                    itemCard.innerHTML = `
-                        <div class="item">
-                            <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
-                        </div>
-                        <span class="item-title">${item.titulo}</span>
-                    `;
-                    row.items.push(itemCard);
-                });
-                tempRows.push(row);
-            });
-            
-            tempRows.forEach(row => {
-                let sectionTitle = document.createElement('h2');
-                sectionTitle.className = "section-title";
-                sectionTitle.textContent = row.title;
-                contentContainer.appendChild(sectionTitle);
+    // Firebase load
+    ref.on("value", snap => {
+      let data = [];
+      snap.forEach(sec => data.push(sec.val()));
+      renderContent(data);
+    });
 
-                let carousel = document.createElement('div');
-                carousel.className = "carousel";
-                row.items.forEach(item => {
-                    carousel.appendChild(item);
-                });
-                contentContainer.appendChild(carousel);
-                
-                rows.push(carousel);
-                allItems.push(row.items);
-            });
+    // Lupa
+    searchButton.addEventListener("click", () => {
+      searchInput.classList.toggle("active");
+      if (searchInput.classList.contains("active")) {
+        searchInput.focus();
+      } else {
+        searchInput.value = "";
+        searchButton.focus();
+      }
+    });
 
-            // mostrar solo la primera categoría al inicio (quirúrgico)
-            showCategory(0);
+    searchInput.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        searchInput.classList.remove("active");
+        searchButton.focus();
+      }
+    });
 
-            if (allItems.length > 0 && allItems[0].length > 0) {
-                setTimeout(() => allItems[0][0].focus(), 100);
-            }
-        }
-
-        // muestra solo la categoría index y oculta las demás
-        var activeCategory = 0;
-        function showCategory(index){
-            const titles = contentContainer.querySelectorAll('.section-title');
-            const carousels = contentContainer.querySelectorAll('.carousel');
-            titles.forEach((t,i) => {
-                t.style.display = (i === index) ? 'block' : 'none';
-            });
-            carousels.forEach((c,i) => {
-                c.style.display = (i === index) ? 'flex' : 'none';
-            });
-            activeCategory = index;
-        }
-
-        function filterContent(query) {
-            query = query.toLowerCase();
-            contentContainer.innerHTML = "";
-            allItems = [];
-            rows = [];
-
-            if (query === "") {
-                renderContent(allCategories);
-                return;
-            }
-
-            let filteredItems = [];
-            let allItemsFlat = [].concat(...allCategories.map(cat => cat.items));
-
-            let tempRow = { title: "Resultados de la búsqueda", items: [] };
-            
-            allItemsFlat.forEach(item => {
-                if (item.titulo.toLowerCase().includes(query)) {
-                    let itemCard = document.createElement('div');
-                    itemCard.className = "item-card";
-                    itemCard.setAttribute('tabindex', '0');
-                    itemCard.setAttribute('data-titulo', item.titulo);
-                    itemCard.setAttribute('data-descripcion', item.descripcion);
-                    itemCard.setAttribute('data-imagen', item.imagen);
-                    itemCard.setAttribute('data-url', item.url);
-                    itemCard.innerHTML = `
-                        <div class="item">
-                            <img src="${item.imagen}" alt="${item.titulo}" loading="lazy">
-                        </div>
-                        <span class="item-title">${item.titulo}</span>
-                    `;
-                    tempRow.items.push(itemCard);
-                }
-            });
-
-            if (tempRow.items.length > 0) {
-                let sectionTitle = document.createElement('h2');
-                sectionTitle.className = "section-title";
-                sectionTitle.textContent = tempRow.title;
-                contentContainer.appendChild(sectionTitle);
-                
-                let carousel = document.createElement('div');
-                carousel.className = "carousel";
-                tempRow.items.forEach(item => {
-                    carousel.appendChild(item);
-                });
-                contentContainer.appendChild(carousel);
-
-                rows.push(carousel);
-                allItems.push(tempRow.items);
-
-                // mostrar la única categoría de resultados
-                showCategory(0);
-            } else {
-                let noResults = document.createElement('p');
-                noResults.textContent = "No se encontraron resultados.";
-                noResults.style.textAlign = 'center';
-                noResults.style.marginTop = '2rem';
-                contentContainer.appendChild(noResults);
-            }
-
-            if (allItems.length > 0 && allItems[0].length > 0) {
-                setTimeout(() => allItems[0][0].focus(), 100);
-            }
-        }
-        
-        ref.on("value", function(snapshot) {
-            const categoriesData = [];
-            snapshot.forEach(function(categorySnapshot) {
-                const category = {
-                    title: categorySnapshot.val().subtitulo,
-                    items: []
-                };
-                categorySnapshot.forEach(function(itemSnapshot) {
-                    if (itemSnapshot.key !== "subtitulo") {
-                        category.items.push(itemSnapshot.val());
-                    }
-                });
-                if (category.items.length > 0) {
-                    categoriesData.push(category);
-                }
-            });
-            allCategories = categoriesData;
-            renderContent(allCategories);
-        });
-
-        function openModal(itemData) {
-            document.getElementById("modal-imagen").src = itemData.imagen;
-            document.getElementById("modal-titulo").textContent = itemData.titulo;
-            document.getElementById("modal-descripcion").textContent = itemData.descripcion;
-            btnReproducir.href = itemData.url;
-            modal.classList.add("active");
-            isModalActive = true;
-            btnReproducir.focus();
-        }
-
-        function closeModal() {
-            modal.classList.remove("active");
-            isModalActive = false;
-            if (lastFocusedElement) {
-                lastFocusedElement.focus();
-            }
-        }
-        
-        btnVolver.onclick = closeModal;
-
-        searchButton.onclick = function() {
-            isSearchActive = !isSearchActive;
-            if (isSearchActive) {
-                searchInput.classList.add('active');
-                searchInput.setAttribute('tabindex', '0');
-                searchInput.focus();
-            } else {
-                searchInput.classList.remove('active');
-                searchInput.setAttribute('tabindex', '-1');
-                searchInput.value = "";
-                filterContent("");
-                if (lastFocusedElement) {
-                    lastFocusedElement.focus();
-                } else {
-                    if (allItems.length && allItems[0].length) allItems[0][0].focus();
-                }
-            }
-        };
-
-        // ---- MODIFICACIÓN: el buscador NO busca mientras escribís.
-        // Solo ejecuta la búsqueda al presionar Enter.
-        // (Escape / Backspace siguen limpiando y devolviendo foco a la lupa)
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                filterContent(searchInput.value.trim());
-                return;
-            }
-            // permitimos Escape/Backspace limpiar desde el propio input también
-            if (e.key === "Escape" || e.key === "Backspace") {
-                e.preventDefault();
-                searchInput.value = "";
-                filterContent("");
-                searchButton.focus();
-                return;
-            }
-        });
-
-        // (Quité el listener 'input' para evitar filtrar mientras se escribe)
-
-        document.addEventListener('keydown', function(e) {
-            let focusedElement = document.activeElement;
-
-            if (isModalActive) {
-                if (e.key === "ArrowRight") { btnVolver.focus(); }
-                else if (e.key === "ArrowLeft") { btnReproducir.focus(); }
-                else if (e.key === "Enter") { focusedElement.click(); }
-                else if (e.key === "Escape" || e.key === "Backspace") { closeModal(); }
-                return;
-            }
-
-            if (focusedElement === searchButton) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    searchButton.click();
-                }
-                return;
-            }
-
-            // Si el foco está en el input de búsqueda, devolvemos aquí (ya manejamos Enter/Escape/Backspace arriba)
-            if (focusedElement === searchInput) {
-                return;
-            }
-
-            let isItemFocused = focusedElement && focusedElement.closest('.item-card');
-            let newFocusedElement = focusedElement;
-
-            if (isItemFocused) {
-                let currentItemRow = -1;
-                let currentItemIndexInRow = -1;
-                
-                for(let r = 0; r < allItems.length; r++) {
-                    let idx = allItems[r].findIndex(item => item === focusedElement);
-                    if (idx !== -1) {
-                        currentItemRow = r;
-                        currentItemIndexInRow = idx;
-                        break;
-                    }
-                }
-
-                if (e.key === "ArrowRight" && currentItemIndexInRow < allItems[currentItemRow].length - 1) {
-                    newFocusedElement = allItems[currentItemRow][currentItemIndexInRow + 1];
-                } else if (e.key === "ArrowLeft" && currentItemIndexInRow > 0) {
-                    newFocusedElement = allItems[currentItemRow][currentItemIndexInRow - 1];
-                } else if (e.key === "ArrowDown" && currentItemRow < allItems.length - 1) {
-                    let nextRowItems = allItems[currentItemRow + 1];
-                    let nextItemIndex = Math.min(currentItemIndexInRow, nextRowItems.length - 1);
-                    newFocusedElement = nextRowItems[nextItemIndex];
-                } else if (e.key === "ArrowUp") {
-                    if (currentItemRow > 0) {
-                        let prevRowItems = allItems[currentItemRow - 1];
-                        let prevItemIndex = Math.min(currentItemIndexInRow, prevRowItems.length - 1);
-                        newFocusedElement = prevRowItems[prevItemIndex];
-                    } else {
-                        // Si está en la primera fila, el foco va a la lupa
-                        newFocusedElement = searchButton;
-                    }
-                } else if (e.key === "Enter") {
-                    lastFocusedElement = focusedElement;
-                    focusedElement.click();
-                    return;
-                }
-            } else if (focusedElement === searchButton) {
-                if (e.key === "ArrowDown" && allItems.length > 0) {
-                    newFocusedElement = allItems[0][0];
-                }
-            }
-            
-            if (newFocusedElement && newFocusedElement !== focusedElement) {
-                // si el nuevo elemento pertenece a otra fila, mostrar solo esa categoría
-                let newRowIndex = -1;
-                if (newFocusedElement && newFocusedElement.closest) {
-                    for (let r = 0; r < allItems.length; r++) {
-                        if (allItems[r].includes(newFocusedElement)) { newRowIndex = r; break; }
-                    }
-                }
-                if (newRowIndex !== -1 && newRowIndex !== activeCategory) {
-                    showCategory(newRowIndex);
-                }
-                newFocusedElement.focus();
-                if (newFocusedElement.closest('.carousel')) {
-                    newFocusedElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-                }
-            }
-        });
-
-        document.addEventListener('click', function(e) {
-            let item = e.target.closest('.item-card');
-            if (item) {
-                let data = {
-                    titulo: item.getAttribute('data-titulo'),
-                    descripcion: item.getAttribute('data-descripcion'),
-                    imagen: item.getAttribute('data-imagen'),
-                    url: item.getAttribute('data-url')
-                };
-                lastFocusedElement = item;
-                openModal(data);
-            }
-        });
-
-        // Asegurar que el foco inicial sea la lupa y ajustar layout slider al cargar
-        window.addEventListener('load', function(){
-            setTimeout(() => searchButton.focus(), 500);
-            adjustLayoutForSlider();
-        });
-        window.addEventListener('resize', adjustLayoutForSlider);
-    </script>
+    // SLIDER decorativo (ejemplo 3 imgs)
+    const slider = document.getElementById("decor-slider");
+    const sliderImages = [
+      "https://picsum.photos/1600/300?1",
+      "https://picsum.photos/1600/300?2",
+      "https://picsum.photos/1600/300?3"
+    ];
+    sliderImages.forEach((src, i) => {
+      let img = document.createElement("img");
+      img.src = src;
+      if (i === 0) img.classList.add("active");
+      slider.appendChild(img);
+    });
+    let current = 0;
+    setInterval(() => {
+      const imgs = slider.querySelectorAll("img");
+      imgs[current].classList.remove("active");
+      current = (current + 1) % imgs.length;
+      imgs[current].classList.add("active");
+    }, 10000);
+  </script>
 </body>
 </html>
+
