@@ -13,6 +13,25 @@
       color: #fff;
       font-family: Arial, sans-serif;
     }
+    #slider {
+      width: 100%;
+      height: 300px;
+      overflow: hidden;
+      position: relative;
+    }
+    #slider img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+    #slider img.active {
+      opacity: 1;
+    }
     header {
       display: flex;
       justify-content: flex-end;
@@ -50,6 +69,12 @@
   </style>
 </head>
 <body>
+  <div id="slider">
+    <img src="https://via.placeholder.com/1280x300?text=Slider+1" class="active">
+    <img src="https://via.placeholder.com/1280x300?text=Slider+2">
+    <img src="https://via.placeholder.com/1280x300?text=Slider+3">
+  </div>
+
   <header>
     <span id="searchIcon">🔍</span>
     <input type="text" id="searchInput" placeholder="Buscar...">
@@ -103,6 +128,15 @@
         renderCategory(cat.key, Object.values(cat.val()));
       });
     });
+
+    // Slider automático
+    let index = 0;
+    const slides = document.querySelectorAll("#slider img");
+    setInterval(() => {
+      slides[index].classList.remove("active");
+      index = (index + 1) % slides.length;
+      slides[index].classList.add("active");
+    }, 10000);
   </script>
 </body>
 </html>
