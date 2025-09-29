@@ -3,20 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Box Zone TV - Final (Lógica de Atrás Perfecta)</title>
+    <title>Box Zone TV - Diseño Estático</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        /* Estilos Base */
-        body { margin:0; background:#000; color:#fff; font-family:Arial, sans-serif; overflow:hidden; }
+        /* 🛑 MODIFICACIÓN CLAVE PARA ESTATISMO VERTICAL (TIPO TV) 🛑 */
+        html, body { 
+            margin:0; 
+            padding:0; 
+            background:#000; 
+            color:#fff; 
+            font-family:Arial, sans-serif; 
+            height: 100%; /* Asegura que el cuerpo ocupe toda la altura */
+            overflow: hidden; /* EVITA EL SCROLL VERTICAL EN TODA LA PANTALLA */
+        }
+
+        /* Contenedor principal que usa Flexbox para dividir la pantalla */
+        #content-wrapper {
+            display: flex;
+            flex-direction: column; /* Apila el slider y las categorías */
+            height: 100%;
+        }
         
-        /* SLIDER (Altura: 330px) */
+        /* SLIDER (Altura: 330px - SE MANTIENE PORQUE NO DESBORDA) */
         .slider { 
             width:100%; 
-            height:330px; 
+            height:330px; /* Tamaño fijo, ideal para la cabecera */
             position:relative; 
             background:#222; 
             overflow: hidden; 
+            flex-shrink: 0; /* Asegura que no se encoja */
         }
         .slider img { 
             width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; 
@@ -27,7 +43,7 @@
             opacity:1; 
         }
 
-        /* Estilos Lupa y Foco (Se superponen al slider - OK para TV) */
+        /* Estilos Lupa y Foco (Superposición OK) */
         .header { 
             position:absolute; top:10px; right:20px; font-size:22px; cursor:pointer; z-index:10; 
             transition: none; 
@@ -41,22 +57,34 @@
         }
         .search-box input { padding:8px; font-size:16px; border-radius:4px; border:none; }
 
-        /* Estilos Contenido Principal */
-        .category { text-align:left; padding:20px; }
+        /* 🛑 MODIFICACIÓN CLAVE: Contenedor de Categorías Fijo 🛑 */
+        /* Ocupa el espacio restante y es el ÚNICO que permite scroll vertical interno */
+        #categories {
+            flex-grow: 1; /* Ocupa todo el espacio restante bajo el slider */
+            overflow-y: auto; /* PERMITE SCROLL VERTICAL SOLAMENTE DENTRO DE ESTE DIV */
+            padding-bottom: 20px; /* Espacio extra al final para el último ítem */
+        }
+        /* Oculta la barra de desplazamiento vertical en #categories para una apariencia de TV */
+        #categories::-webkit-scrollbar { display: none; }
+        #categories { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+        /* Estilos de Categoría e Ítems */
+        .category { text-align:left; padding:0 0 20px 20px; } /* Ajuste de padding */
         .category h2 { margin:10px 0; }
         .items { 
             display:flex; 
-            overflow-x: auto; 
+            overflow-x: auto; /* Se mantiene el scroll horizontal dentro de la fila */
             padding-bottom: 10px; 
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none; 
         } 
         .items::-webkit-scrollbar { 
-            display: none; /* Chrome, Safari */
+            display: none; 
         }
         .item { 
-            /* 🔴 MODIFICACIÓN CLAVE: Reducción de 50px de ancho y alto */
-            width:150px; /* 200px - 50px */
-            height:250px; /* 300px - 50px */
+            /* Tamaños ajustados */
+            width:150px; 
+            height:250px; 
             margin:0 10px; 
             background:#333; border-radius:6px; 
             display:flex; align-items:center; justify-content:center; flex-shrink:0; 
@@ -171,7 +199,7 @@
         // --- Fin Funciones de SLIDER ---
 
 
-        // --- Funciones de Foco y UI (Se mantiene la lógica de navegación) ---
+        // --- Funciones de Foco y UI ---
 
         function toggleSearch(activate) {
             focusOnSearch = activate;
@@ -225,7 +253,7 @@
             }
         });
         
-        // RENDERIZADO y Scroll Controlado (Usa scrollIntoView para evitar desbordes en TV)
+        // RENDERIZADO y Scroll Controlado (AJUSTADO: Scroll vertical interno para #categories)
         function renderCategory(filteredData = null) {
             if (!categoriesDiv) return; 
             categoriesDiv.innerHTML = "";
@@ -234,32 +262,50 @@
             let catName = filteredData ? "Resultados de Búsqueda" : (categories.length > 0 ? categories[activeCategoryIndex] : "Sin Contenido");
 
             if (dataToRender && dataToRender.length > 0) {
-                const section = document.createElement("div");
-                section.classList.add("category");
-                section.innerHTML = `<h2>${catName}</h2>`;
-                const itemsContainer = document.createElement("div"); itemsContainer.classList.add("items");
+                // Si estamos en modo búsqueda, solo mostramos una fila de resultados
+                const catsToRender = filteredData ? [ { name: catName, data: dataToRender } ] : categories.map(name => ({ name: name, data: currentData[name] }));
                 
-                dataToRender.forEach((m, i) => {
-                    const item = createItemElement(m, i, activeItemIndex, filteredData);
-                    item.addEventListener('click', () => {
-                        if (!filteredData) {
-                             activeCategoryIndex = categories.indexOf(m.category);
-                             activeItemIndex = i;
-                             focusItem(); 
-                        }
-                        openModal(m, filteredData !== null); 
+                let currentFocusCategory = -1;
+                let activeCategoryFound = false;
+                
+                catsToRender.forEach((cat, catIndex) => {
+                    const section = document.createElement("div");
+                    section.classList.add("category");
+                    section.innerHTML = `<h2>${cat.name}</h2>`;
+                    const itemsContainer = document.createElement("div"); itemsContainer.classList.add("items");
+                    
+                    if (!filteredData && catIndex === activeCategoryIndex) {
+                        currentFocusCategory = catIndex;
+                        activeCategoryFound = true;
+                    } else if (filteredData) {
+                        // En búsqueda, el foco está siempre en la única categoría renderizada
+                        currentFocusCategory = 0;
+                        activeCategoryFound = true;
+                    }
+                    
+                    cat.data.forEach((m, i) => {
+                        const isFocused = activeCategoryFound && (filteredData ? 0 : catIndex) === currentFocusCategory && i === activeItemIndex;
+                        const item = createItemElement(m, i, isFocused);
+                        item.addEventListener('click', () => {
+                            if (!filteredData) {
+                                 activeCategoryIndex = categories.indexOf(m.category);
+                                 activeItemIndex = i;
+                                 focusItem(); 
+                            }
+                            openModal(m, filteredData !== null); 
+                        });
+                        itemsContainer.appendChild(item);
                     });
-                    itemsContainer.appendChild(item);
+                    section.appendChild(itemsContainer); 
+                    categoriesDiv.appendChild(section);
                 });
-                section.appendChild(itemsContainer); 
-                categoriesDiv.appendChild(section);
             } else if (!filteredData && categories.length === 0) {
                  categoriesDiv.innerHTML = '<div class="category"><h2>No hay contenido.</h2></div>';
             } else if (filteredData && searchInput.value) {
                  categoriesDiv.innerHTML = `<div class="category"><h2>No se encontraron resultados para "${searchInput.value}".</h2></div>`;
             }
 
-            // Mantiene el ítem enfocado visible sin desbordar (Optimización para TV)
+            // Mantiene el ítem enfocado visible horizontalmente (scrollIntoView)
             if (!focusOnSearch) {
                 const focusedElement = document.querySelector(".item.focused");
                 if (focusedElement) {
@@ -268,15 +314,23 @@
                         inline: 'center', 
                         block: 'nearest' 
                     });
+                    
+                    // 🟢 NUEVA LÓGICA DE SCROLL VERTICAL (para que la categoría enfocada sea visible)
+                    const categoryWrapper = focusedElement.closest('.category');
+                    if (categoryWrapper) {
+                        categoriesDiv.scrollTop = categoryWrapper.offsetTop - categoriesDiv.offsetTop;
+                        // Ajusta para asegurar que el título de la categoría también sea visible
+                        categoriesDiv.scrollBy({ top: categoryWrapper.offsetTop - categoriesDiv.scrollTop - 40, behavior: 'smooth' });
+                    }
                 }
             }
         }
 
-        function createItemElement(movie, index, activeIndex, isSearch = false) {
+        function createItemElement(movie, index, isFocused) {
             const item = document.createElement("div");
             item.classList.add("item");
             
-            if (index === activeIndex && window.innerWidth > 600 && !focusOnSearch) {
+            if (isFocused && window.innerWidth > 600 && !focusOnSearch) {
                 item.classList.add("focused");
             }
             
@@ -297,14 +351,12 @@
             focusModalButton(0); 
         }
 
-        // Función Atrás (Vuelve al menú principal)
         function closeModal() { 
             modal.style.display = "none";
             focusOnModal = false;
             focusItem(); 
         }
 
-        // Función Reproducir (Inicia la reproducción)
         function playMovie() { 
             let movie;
             
@@ -343,7 +395,7 @@
             }
         }
 
-        // --- FUNCIÓN DE INICIALIZACIÓN Y EVENTOS ---
+        // --- FUNCIÓN DE INICIALIZACIÓN Y EVENTOS (Se mantiene la lógica de navegación) ---
         function init() {
             categoriesDiv = document.getElementById("categories");
             sliderDiv = document.getElementById("slider");
@@ -355,7 +407,6 @@
             loadSliderImages(); 
             toggleSearch(true); 
 
-            // Enlazamos los eventos onclick de los botones del modal
             document.getElementById("modalBackBtn").onclick = closeModal;
             document.getElementById("modalPlayBtn").onclick = playMovie;
 
@@ -434,7 +485,7 @@
                     if (activeItemIndex > 0) { activeItemIndex--; focusItem(); }
                 } else if (key === "ArrowDown") {
                     if (!searchResults && activeCategoryIndex < categories.length - 1) { 
-                        activeCategoryIndex++; activeItemIndex = 0; focusItem(); 
+                        activeCategoryIndex++; activeItemIndex = 0; renderCategory(); 
                     }
                 } else if (key === "ArrowUp") { 
                     if (searchResults || activeCategoryIndex === 0) { 
@@ -452,7 +503,7 @@
                         activeCategoryIndex = 0;
                         
                     } else { 
-                        activeCategoryIndex--; activeItemIndex = 0; focusItem(); 
+                        activeCategoryIndex--; activeItemIndex = 0; renderCategory(); 
                     }
                 } else if (key === "Enter") {
                     const movie = dataSet[activeItemIndex]; 
