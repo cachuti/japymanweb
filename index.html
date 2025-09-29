@@ -60,7 +60,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
         var firebaseConfig = {
-            // Configuración de Firebase
+            // Configuración de Firebase (dejar igual)
             apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
             authDomain: "chunito-d25bb.firebaseapp.com",
             projectId: "chunito-d25bb",
@@ -104,19 +104,18 @@
                     mensaje.className = "success";
                     
                     setTimeout(function() {
-                        // Solo si es un nuevo login, descontamos un ingreso
                         if (isNewLogin) {
                             refUsuarios.child(usuario).child("ingresos").transaction(currentIngresos => {
                                 return (currentIngresos || 0) - 1;
                             }, (error, committed, snapshot) => {
                                 if (committed) {
-                                    // ✅ CORRECCIÓN FINAL: Redirige a menu.html
-                                    window.location.href = "menu.html"; 
+                                    // ✅ REDIRECCIÓN CORREGIDA a categorias.html
+                                    window.location.href = "categorias.html"; 
                                 }
                             });
                         } else {
-                            // ✅ CORRECCIÓN FINAL: Redirige a menu.html (re-login)
-                            window.location.href = "menu.html"; 
+                            // ✅ REDIRECCIÓN CORREGIDA a categorias.html (re-login)
+                            window.location.href = "categorias.html"; 
                         }
                     }, 1500); // Espera 1.5 segundos para mostrar el mensaje
                 }
@@ -126,10 +125,8 @@
         // 1. Al cargar la página, revisa si hay una sesión activa
         var lastUser = localStorage.getItem('lastUser');
         if (lastUser) {
-            // Si hay sesión, verifica el usuario sin descontar un ingreso
             loginUsuario(lastUser, false); 
         } else {
-            // Si no hay, muestra el input para que el usuario ingrese su nombre
             mensaje.textContent = "";
             usuarioInput.style.display = 'block';
             usuarioInput.focus();
@@ -145,9 +142,7 @@
             }
 
             timeoutId = setTimeout(function() {
-                // Guarda el usuario en la memoria local antes de intentar el login
                 localStorage.setItem('lastUser', usuario);
-                // Intenta un nuevo login, descontando un ingreso si es válido
                 loginUsuario(usuario, true); 
             }, 500);
         });
