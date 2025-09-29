@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Box Zone TV - Diseño Estático</title>
+    <title>Box Zone TV - Categoría Única</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        /* 🛑 MODIFICACIÓN CLAVE PARA ESTATISMO VERTICAL (TIPO TV) 🛑 */
+        /* 🛑 ESTILOS PARA ESTATISMO VERTICAL (TIPO TV) 🛑 */
         html, body { 
             margin:0; 
             padding:0; 
             background:#000; 
             color:#fff; 
             font-family:Arial, sans-serif; 
-            height: 100%; /* Asegura que el cuerpo ocupe toda la altura */
+            height: 100%; 
             overflow: hidden; /* EVITA EL SCROLL VERTICAL EN TODA LA PANTALLA */
         }
 
-        /* Contenedor principal que usa Flexbox para dividir la pantalla */
         #content-wrapper {
             display: flex;
-            flex-direction: column; /* Apila el slider y las categorías */
+            flex-direction: column; 
             height: 100%;
         }
         
-        /* SLIDER (Altura: 330px - SE MANTIENE PORQUE NO DESBORDA) */
+        /* SLIDER (Altura Fija) */
         .slider { 
             width:100%; 
-            height:330px; /* Tamaño fijo, ideal para la cabecera */
+            height:330px; 
             position:relative; 
             background:#222; 
             overflow: hidden; 
-            flex-shrink: 0; /* Asegura que no se encoja */
+            flex-shrink: 0; 
         }
         .slider img { 
             width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; 
@@ -43,7 +42,7 @@
             opacity:1; 
         }
 
-        /* Estilos Lupa y Foco (Superposición OK) */
+        /* Estilos Lupa y Foco */
         .header { 
             position:absolute; top:10px; right:20px; font-size:22px; cursor:pointer; z-index:10; 
             transition: none; 
@@ -57,24 +56,21 @@
         }
         .search-box input { padding:8px; font-size:16px; border-radius:4px; border:none; }
 
-        /* 🛑 MODIFICACIÓN CLAVE: Contenedor de Categorías Fijo 🛑 */
-        /* Ocupa el espacio restante y es el ÚNICO que permite scroll vertical interno */
+        /* 🛑 CONTENEDOR DE CATEGORÍAS FIJO 🛑 */
+        /* Ya no necesita scroll-y: auto porque solo hay una categoría. */
         #categories {
-            flex-grow: 1; /* Ocupa todo el espacio restante bajo el slider */
-            overflow-y: auto; /* PERMITE SCROLL VERTICAL SOLAMENTE DENTRO DE ESTE DIV */
-            padding-bottom: 20px; /* Espacio extra al final para el último ítem */
+            flex-grow: 1; 
+            overflow: hidden; /* Eliminamos el scroll interno vertical */
+            padding-bottom: 20px; 
+            transition: all 0.3s ease; /* Transición suave al cambiar de categoría */
         }
-        /* Oculta la barra de desplazamiento vertical en #categories para una apariencia de TV */
-        #categories::-webkit-scrollbar { display: none; }
-        #categories { -ms-overflow-style: none; scrollbar-width: none; }
-
 
         /* Estilos de Categoría e Ítems */
-        .category { text-align:left; padding:0 0 20px 20px; } /* Ajuste de padding */
+        .category { text-align:left; padding:0 0 20px 20px; } 
         .category h2 { margin:10px 0; }
         .items { 
             display:flex; 
-            overflow-x: auto; /* Se mantiene el scroll horizontal dentro de la fila */
+            overflow-x: auto; 
             padding-bottom: 10px; 
             scrollbar-width: none; 
         } 
@@ -130,7 +126,7 @@
     </div>
 
     <script>
-        // Inicialización de Firebase (Se respeta el código original)
+        // Inicialización de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
             authDomain: "chunito-d25bb.firebaseapp.com",
@@ -160,10 +156,9 @@
         // Variables DOM globales 
         let categoriesDiv, sliderDiv, searchBtn, searchBox, searchInput, modal, modalButtons;
 
-        // --- Funciones de SLIDER (Decorativo) ---
+        // --- Funciones de SLIDER ---
         function startSliderRotation() {
             if (window.sliderInterval) clearInterval(window.sliderInterval); 
-
             if (sliderImages.length > 1) {
                 window.sliderInterval = setInterval(rotateSlider, 10000); 
             } else if (sliderImages.length === 1) {
@@ -192,7 +187,6 @@
                     sliderDiv.appendChild(img);
                     return img;
                 });
-                
                 startSliderRotation();
             });
         }
@@ -253,52 +247,42 @@
             }
         });
         
-        // RENDERIZADO y Scroll Controlado (AJUSTADO: Scroll vertical interno para #categories)
+        // 🛑 MODIFICACIÓN CLAVE: Renderiza SOLO la categoría activa 🛑
         function renderCategory(filteredData = null) {
             if (!categoriesDiv) return; 
-            categoriesDiv.innerHTML = "";
+            categoriesDiv.innerHTML = ""; // Limpia todas las categorías anteriores
             
             let dataToRender = filteredData || (categories.length > 0 ? currentData[categories[activeCategoryIndex]] : null);
-            let catName = filteredData ? "Resultados de Búsqueda" : (categories.length > 0 ? categories[activeCategoryIndex] : "Sin Contenido");
+            let catName = filteredData ? `Resultados de Búsqueda para: "${searchInput.value}"` : (categories.length > 0 ? categories[activeCategoryIndex] : "Sin Contenido");
 
             if (dataToRender && dataToRender.length > 0) {
-                // Si estamos en modo búsqueda, solo mostramos una fila de resultados
-                const catsToRender = filteredData ? [ { name: catName, data: dataToRender } ] : categories.map(name => ({ name: name, data: currentData[name] }));
+                const section = document.createElement("div");
+                section.classList.add("category");
                 
-                let currentFocusCategory = -1;
-                let activeCategoryFound = false;
+                // Añade el título de la categoría
+                section.innerHTML = `<h2>${catName}</h2>`;
                 
-                catsToRender.forEach((cat, catIndex) => {
-                    const section = document.createElement("div");
-                    section.classList.add("category");
-                    section.innerHTML = `<h2>${cat.name}</h2>`;
-                    const itemsContainer = document.createElement("div"); itemsContainer.classList.add("items");
-                    
-                    if (!filteredData && catIndex === activeCategoryIndex) {
-                        currentFocusCategory = catIndex;
-                        activeCategoryFound = true;
-                    } else if (filteredData) {
-                        // En búsqueda, el foco está siempre en la única categoría renderizada
-                        currentFocusCategory = 0;
-                        activeCategoryFound = true;
-                    }
-                    
-                    cat.data.forEach((m, i) => {
-                        const isFocused = activeCategoryFound && (filteredData ? 0 : catIndex) === currentFocusCategory && i === activeItemIndex;
-                        const item = createItemElement(m, i, isFocused);
-                        item.addEventListener('click', () => {
-                            if (!filteredData) {
-                                 activeCategoryIndex = categories.indexOf(m.category);
-                                 activeItemIndex = i;
-                                 focusItem(); 
-                            }
-                            openModal(m, filteredData !== null); 
-                        });
-                        itemsContainer.appendChild(item);
+                const itemsContainer = document.createElement("div"); 
+                itemsContainer.classList.add("items");
+                
+                // Renderiza los ítems
+                dataToRender.forEach((m, i) => {
+                    // Determina si este es el ítem activo
+                    const isFocused = i === activeItemIndex && !focusOnSearch;
+                    const item = createItemElement(m, i, isFocused);
+                    item.addEventListener('click', () => {
+                        if (!filteredData) {
+                             activeCategoryIndex = categories.indexOf(m.category);
+                             activeItemIndex = i;
+                             focusItem(); 
+                        }
+                        openModal(m, filteredData !== null); 
                     });
-                    section.appendChild(itemsContainer); 
-                    categoriesDiv.appendChild(section);
+                    itemsContainer.appendChild(item);
                 });
+                
+                section.appendChild(itemsContainer); 
+                categoriesDiv.appendChild(section);
             } else if (!filteredData && categories.length === 0) {
                  categoriesDiv.innerHTML = '<div class="category"><h2>No hay contenido.</h2></div>';
             } else if (filteredData && searchInput.value) {
@@ -315,13 +299,8 @@
                         block: 'nearest' 
                     });
                     
-                    // 🟢 NUEVA LÓGICA DE SCROLL VERTICAL (para que la categoría enfocada sea visible)
-                    const categoryWrapper = focusedElement.closest('.category');
-                    if (categoryWrapper) {
-                        categoriesDiv.scrollTop = categoryWrapper.offsetTop - categoriesDiv.offsetTop;
-                        // Ajusta para asegurar que el título de la categoría también sea visible
-                        categoriesDiv.scrollBy({ top: categoryWrapper.offsetTop - categoriesDiv.scrollTop - 40, behavior: 'smooth' });
-                    }
+                    // 🛑 Quitamos el scroll vertical de categoríasDiv, ya que ahora solo hay una
+                    // categoriesDiv.scrollTop = 0; // Asegura que la única categoría esté al inicio
                 }
             }
         }
@@ -395,7 +374,7 @@
             }
         }
 
-        // --- FUNCIÓN DE INICIALIZACIÓN Y EVENTOS (Se mantiene la lógica de navegación) ---
+        // --- FUNCIÓN DE INICIALIZACIÓN Y EVENTOS ---
         function init() {
             categoriesDiv = document.getElementById("categories");
             sliderDiv = document.getElementById("slider");
@@ -484,10 +463,12 @@
                 } else if (key === "ArrowLeft") {
                     if (activeItemIndex > 0) { activeItemIndex--; focusItem(); }
                 } else if (key === "ArrowDown") {
+                    // Navegación Vertical: Cambia a la siguiente categoría
                     if (!searchResults && activeCategoryIndex < categories.length - 1) { 
                         activeCategoryIndex++; activeItemIndex = 0; renderCategory(); 
                     }
                 } else if (key === "ArrowUp") { 
+                    // Navegación Vertical: Cambia a la categoría anterior o a la Lupa
                     if (searchResults || activeCategoryIndex === 0) { 
                         
                         document.querySelector(".item.focused")?.classList.remove("focused");
