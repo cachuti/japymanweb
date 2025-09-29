@@ -3,72 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Box Zone TV - Menú Lateral HBO Max</title>
+    <title>Box Zone TV - Diseño Original (Múltiples Filas con Scroll)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         /* ---------------------------------------------------- */
-        /* --------- BASE Y LAYOUT (HORIZONTAL FLEX) -------- */
+        /* --------- BASE Y LAYOUT (ESTÁTICO VERTICAL) -------- */
         /* ---------------------------------------------------- */
         html, body { 
             margin:0; padding:0; background:#000; color:#fff; 
             font-family:Arial, sans-serif; 
             height: 100%; width: 100%;
-            overflow: hidden; 
+            overflow: hidden; /* Evita scroll vertical en la ventana principal */
         }
         
-        #main-container {
-            display: flex;
-            height: 100%;
-            width: 100%;
-        }
-
-        /* ---------------------------------------------------- */
-        /* --------- BARRA LATERAL (MENU - HBO MAX STYLE) ----- */
-        /* ---------------------------------------------------- */
-        #sidebar {
-            width: 80px; 
-            height: 100%;
-            background: #000;
-            padding-top: 150px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-shrink: 0;
-            z-index: 30; /* Debe estar sobre el contenido principal */
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
-        }
-
-        .menu-item {
-            font-size: 1.1em;
-            padding: 15px 0;
-            width: 100%;
-            text-align: center;
-            transition: all 0.2s;
-            cursor: pointer;
-            border-left: 5px solid transparent;
-            color: #999; 
-            /* Se usa el nombre de la categoría, por ahora es solo el índice */
-            line-height: 1.2; 
-        }
-
-        /* Foco Estilo HBO Max (Azul) */
-        .menu-item.focused {
-            color: #fff;
-            font-weight: bold;
-            border-left: 5px solid #005ce6; 
-            background: rgba(0, 92, 230, 0.2); 
-            transform: scale(1.05);
-        }
-
-        /* ---------------------------------------------------- */
-        /* --------- CONTENIDO PRINCIPAL (Slider + Fila) ------ */
-        /* ---------------------------------------------------- */
         #content-wrapper {
-            flex-grow: 1; /* Ocupa el resto del espacio horizontal */
             display: flex;
             flex-direction: column; 
-            position: relative;
             height: 100%;
         }
 
@@ -94,7 +45,7 @@
         }
 
         /* ---------------------------------------------------- */
-        /* --------- BÚSQUEDA Y LUPA -------------------------- */
+        /* --------- BÚSQUEDA Y LUPA (Vuelve a ser flotante) -- */
         /* ---------------------------------------------------- */
         .header { 
             position:absolute; top:20px; right:30px; font-size:24px; cursor:pointer; 
@@ -103,9 +54,9 @@
             transition: all 0.2s ease;
         }
         .header.focused { 
-            border:2px solid #005ce6; /* Foco azul */
+            border:2px solid #e50914; 
             transform: scale(1.1);
-            background: rgba(0, 92, 230, 0.2);
+            background: rgba(229, 9, 20, 0.2);
         }
         .search-box { 
             display:none; position:absolute; top:70px; right:30px; z-index:200; 
@@ -121,10 +72,10 @@
         /* ---------------------------------------------------- */
         #categories {
             flex-grow: 1; 
-            overflow-y: hidden; 
+            overflow-y: auto; /* Habilita el scroll vertical para las categorías */
             position: relative; 
             
-            /* SUPERPOSICIÓN */
+            /* Mantiene la superposición sobre el slider */
             margin-top: -100px; 
             padding-top: 100px; 
             padding-bottom: 20px; 
@@ -155,6 +106,7 @@
             display: none; 
         }
         .item { 
+            /* Tamaños compactos de la versión optimizada */
             width:150px; 
             height:220px; 
             margin:0 8px; 
@@ -166,8 +118,8 @@
         .item img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
         .item.focused { 
             transform:scale(1.25); 
-            border:3px solid #005ce6; /* Foco azul */
-            box-shadow: 0 0 10px rgba(0, 92, 230, 0.5);
+            border:3px solid #e50914; 
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
             z-index: 60; 
         }
         
@@ -194,26 +146,20 @@
             padding:12px 25px; border:none; border-radius:4px; cursor:pointer; 
             font-size:1.1em; transition: transform 0.2s;
         }
-        .modal-buttons .play { background:#005ce6; color:#fff; } /* Botón principal azul */
+        .modal-buttons .play { background:#e50914; color:#fff; }
         .modal-buttons .back { background:#555; color:#fff; }
         .modal-buttons button.focused-modal { border:3px solid yellow; transform: scale(1.05); }
     </style>
 </head>
 <body>
     
-    <div id="main-container">
-        <div id="sidebar">
-            <div id="sidebar-search-placeholder" class="menu-item">🔍</div>
-            </div>
-
-        <div id="content-wrapper">
-            <div class="slider" id="slider"></div> 
-            <div class="header" id="searchBtn" style="display: none;"></div>
-            <div class="search-box" id="searchBox">
-                <input type="text" id="searchInput" placeholder="Buscar por título...">
-            </div>
-            <div id="categories"></div>
+    <div id="content-wrapper">
+        <div class="slider" id="slider"></div> 
+        <div class="header" id="searchBtn">🔍</div> 
+        <div class="search-box" id="searchBox">
+            <input type="text" id="searchInput" placeholder="Buscar por título...">
         </div>
+        <div id="categories"></div>
     </div>
 
     <div class="modal" id="modal">
@@ -233,7 +179,7 @@
     </div>
 
     <script>
-        // Inicialización de Firebase (NO CAMBIA)
+        // Inicialización de Firebase (No cambia)
         const firebaseConfig = {
             apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
             authDomain: "chunito-d25bb.firebaseapp.com",
@@ -252,16 +198,15 @@
         // Variables de Estado
         let categories = [], activeCategoryIndex = 0, activeItemIndex = 0;
         let currentData = {}, allMovies = []; 
-        let focusArea = 'menu'; // 🛑 CAMBIO: El foco inicial es el menú
+        let focusArea = 'slider'; // Vuelve a ser 'slider' o 'items'
         let activeModalButton = 0; 
         let searchResults = null; 
         let isSearchBoxOpen = false;
         let sliderImages = [];
         let currentSliderIndex = 0;
-        let searchMenuIndex = -1; // Índice especial para el botón de búsqueda
 
         // Variables DOM globales 
-        let categoriesDiv, sliderDiv, searchBtn, searchBox, searchInput, modal, modalButtons, sidebarDiv, searchPlaceholder;
+        let categoriesDiv, sliderDiv, searchBtn, searchBox, searchInput, modal, modalButtons;
 
         // --- Carga de Datos y Inicialización ---
         function loadData() {
@@ -278,10 +223,9 @@
                         currentData[m.category].push(m);
                     });
                     categories = Object.keys(currentData);
-                    renderSidebar(); // 🛑 Nuevo: Renderiza el menú después de cargar categorías
                 }
                 if (focusArea !== 'modal') {
-                    setFocus('menu'); 
+                    setFocus('slider'); 
                 }
             });
 
@@ -301,57 +245,42 @@
                 startSliderRotation();
             });
         }
-        
-        // --- Renderizado del Menú Lateral ---
-        function renderSidebar() {
-            sidebarDiv.innerHTML = "";
-            const totalItems = categories.length + 1; // +1 para la búsqueda
-            
-            // 1. Renderizar el botón de búsqueda
-            searchPlaceholder.onclick = () => { setFocus('search'); };
-            sidebarDiv.appendChild(searchPlaceholder);
-            
-            // 2. Renderizar las categorías
-            categories.forEach((name, index) => {
-                const item = document.createElement("div");
-                item.classList.add("menu-item");
-                item.innerText = name;
-                item.dataset.index = index;
-                item.onclick = () => { 
-                    activeCategoryIndex = index;
-                    activeItemIndex = 0;
-                    setFocus('items'); 
-                };
-                sidebarDiv.appendChild(item);
-            });
+
+        // --- Funciones de SLIDER (Rotación) ---
+        function startSliderRotation() {
+            if (window.sliderInterval) clearInterval(window.sliderInterval); 
+            if (sliderImages.length > 1) {
+                window.sliderInterval = setInterval(rotateSlider, 8000); 
+            } else if (sliderImages.length === 1) {
+                sliderImages[0].classList.add('active'); 
+            }
+        }
+
+        function rotateSlider() {
+            if (sliderImages.length === 0) return;
+            sliderImages[currentSliderIndex].classList.remove('active');
+            currentSliderIndex = (currentSliderIndex + 1) % sliderImages.length;
+            sliderImages[currentSliderIndex].classList.add('active');
         }
 
         // --- Manejo de Foco ---
         function setFocus(area) {
+            // Limpia focos anteriores
             document.querySelectorAll('.focused, .focused-modal').forEach(el => el.classList.remove('focused', 'focused-modal'));
             
             focusArea = area;
-            searchBox.style.display = "none";
-            searchInput.blur();
-            isSearchBoxOpen = false;
-
-            // Define qué está enfocado para el renderizado
-            if (area === 'menu' || area === 'search') {
-                let target = (activeCategoryIndex === searchMenuIndex) ? searchPlaceholder : sidebarDiv.querySelector(`[data-index="${activeCategoryIndex}"]`);
-                if (target) {
-                    target.classList.add("focused");
-                    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                }
-                if (area === 'search') {
-                    openSearchInput();
-                }
-                // Al volver al menú, siempre renderiza la categoría activa (vista única)
-                renderCategory(); 
+            
+            if (area === 'slider') {
+                searchBtn.classList.add("focused");
+                isSearchBoxOpen = false;
+                searchBox.style.display = "none";
+                searchInput.blur();
+                renderCategory(); // Renderiza todas las categorías
             } else if (area === 'items') {
-                // Al entrar a los items, activa la categoría correspondiente en el menú como "seleccionada" (pero no "focused")
-                const selectedMenu = sidebarDiv.querySelector(`[data-index="${activeCategoryIndex}"]`);
-                if(selectedMenu) selectedMenu.classList.add("focused");
-                renderCategory(searchResults); 
+                renderCategory(searchResults); // Renderiza todas (o solo resultados) y aplica el foco
+            } else if (area === 'search') {
+                searchBtn.classList.add("focused");
+                openSearchInput();
             } else if (area === 'modal') {
                 modal.style.display = 'flex';
                 focusModalButton(0);
@@ -372,49 +301,47 @@
             if (modalButtons[index]) modalButtons[index].classList.add("focused-modal");
         }
         
-        // --- Renderizado de Categoría Única (NO CAMBIA) ---
+        // --- Renderizado y Scroll (Vuelve a renderizar TODAS las filas) ---
         function renderCategory(filteredData = null) {
             if (!categoriesDiv) return; 
-            
             categoriesDiv.innerHTML = "";
             
-            let dataToRender = null;
-            let catName = "Contenido";
-
-            if (filteredData) {
-                // Modo Búsqueda
-                dataToRender = filteredData;
-                catName = `Resultados para "${searchInput.value}"`;
-            } else if (categories.length > 0) {
-                // Modo Categoría Única (Usa activeCategoryIndex)
-                const currentCategoryName = categories[activeCategoryIndex];
-                dataToRender = currentData[currentCategoryName];
-                catName = currentCategoryName;
-            }
-
-            if (!dataToRender || dataToRender.length === 0) {
-                 categoriesDiv.innerHTML = `<div class="category"><h2>${catName}: No hay contenido.</h2></div>`;
+            const catsToRender = filteredData ? 
+                [{ name: `Resultados para "${searchInput.value}"`, data: filteredData }] : 
+                categories.map(name => ({ name: name, data: currentData[name] }));
+            
+            if (catsToRender.length === 0 && !filteredData) {
+                categoriesDiv.innerHTML = '<div class="category"><h2>No hay contenido.</h2></div>';
+                return;
+            } else if (catsToRender.length === 0 && filteredData) {
+                 categoriesDiv.innerHTML = `<div class="category"><h2>No se encontraron resultados para "${searchInput.value}".</h2></div>`;
                  return;
             }
 
-            // Renderiza la categoría activa (o resultados)
-            const section = document.createElement("div");
-            section.classList.add("category");
-            section.innerHTML = `<h2>${catName}</h2>`;
-            const itemsContainer = document.createElement("div"); 
-            itemsContainer.classList.add("items");
-            
-            dataToRender.forEach((m, itemIndex) => {
-                const isFocused = focusArea === 'items' && itemIndex === activeItemIndex;
-                const item = createItemElement(m, itemIndex, isFocused);
-                item.addEventListener('click', () => {
-                     activeItemIndex = itemIndex; 
-                     openModal(m, filteredData !== null); 
+            // Renderizar todas las categorías
+            catsToRender.forEach((cat, catIndex) => {
+                const section = document.createElement("div");
+                section.classList.add("category");
+                section.dataset.categoryIndex = catIndex;
+
+                section.innerHTML = `<h2>${cat.name}</h2>`;
+                const itemsContainer = document.createElement("div"); 
+                itemsContainer.classList.add("items");
+                
+                cat.data.forEach((m, itemIndex) => {
+                    // El foco solo se aplica si estamos en la zona 'items' y en la categoría/ítem correcto
+                    const isFocused = focusArea === 'items' && catIndex === activeCategoryIndex && itemIndex === activeItemIndex;
+                    const item = createItemElement(m, itemIndex, isFocused);
+                    item.addEventListener('click', () => {
+                         activeCategoryIndex = catIndex;
+                         activeItemIndex = itemIndex;
+                         openModal(m, filteredData !== null); 
+                    });
+                    itemsContainer.appendChild(item);
                 });
-                itemsContainer.appendChild(item);
+                section.appendChild(itemsContainer); 
+                categoriesDiv.appendChild(section);
             });
-            section.appendChild(itemsContainer); 
-            categoriesDiv.appendChild(section);
 
             // Control de scroll y foco
             if (focusArea === 'items') {
@@ -425,6 +352,14 @@
                         inline: 'center', 
                         block: 'nearest' 
                     });
+                    
+                    // Scroll vertical para que la fila enfocada sea visible
+                    const categoryWrapper = focusedElement.closest('.category');
+                    if (categoryWrapper) {
+                        // Ajusta el scroll para mantener la categoría visible con un margen
+                        const offset = 80; 
+                        categoriesDiv.scrollTop = categoryWrapper.offsetTop - offset; 
+                    }
                 }
             }
         }
@@ -439,129 +374,32 @@
             return item;
         }
 
+        // --- Modal y Reproducción ---
+        function openModal(movie, isSearch = false) { 
+            document.getElementById("modalTitle").innerText = movie.title; 
+            document.getElementById("modalDesc").innerText = movie.description; 
+            document.getElementById("modalImg").src = movie.image; 
+            
+            modal.style.display = "flex";
+            focusArea = 'modal';
+            modal.dataset.isSearch = isSearch; 
+            modalButtons = modal.querySelectorAll('.modal-buttons button');
+            focusModalButton(0); 
+        }
+
         function closeModal() { 
             modal.style.display = "none";
-            // Vuelve al foco del menú si estaba en el menú o búsqueda, o a los items si estaba allí.
-            if (searchResults) {
-                setFocus('items'); 
-            } else if (focusArea === 'modal') { // Siempre volvemos al menú si salimos del modal.
-                 setFocus('menu'); 
-            }
-        }
-        
-        function handleSearchInput(term) {
-            const normalizedTerm = term.toLowerCase().trim();
-            
-            if (normalizedTerm === "") {
-                searchResults = null;
-                // Si borra la búsqueda, vuelve al foco normal del menú
-                activeCategoryIndex = 0; activeItemIndex = 0;
-                setFocus('menu'); 
+            // Regresa a la zona de ítems o al slider, manteniendo el índice
+            if (activeCategoryIndex === 0 && activeItemIndex === 0) {
+                 setFocus('slider'); 
             } else {
-                const filtered = allMovies.filter(m => m.title.toLowerCase().includes(normalizedTerm));
-                searchResults = filtered;
-                activeCategoryIndex = searchMenuIndex; // Foco lógico en la "categoría" de búsqueda
-                activeItemIndex = 0;
-                setFocus('items'); 
+                 setFocus('items'); 
             }
         }
 
-
-        // --- Lógica de Teclado (Navegación) ---
-        document.addEventListener("keydown", e => {
-            const key = e.key;
-
-            if (focusArea === 'modal') {
-                // (No cambia)
-                const currentButtons = modal.querySelectorAll('.modal-buttons button');
-                if (key === "ArrowRight") { if (activeModalButton < currentButtons.length - 1) focusModalButton(activeModalButton + 1); } 
-                else if (key === "ArrowLeft") { if (activeModalButton > 0) focusModalButton(activeModalButton - 1); } 
-                else if (key === "Enter") {
-                    if (currentButtons[activeModalButton] === document.getElementById("modalPlayBtn")) { playMovie(); } 
-                    else { closeModal(); }
-                } else if (key === "Escape") { closeModal(); } 
-                return; 
-            }
-
-            if (focusArea === 'menu' || focusArea === 'search') {
-                const totalCategories = categories.length;
-                
-                if (key === "ArrowUp") {
-                    if (activeCategoryIndex > searchMenuIndex) { 
-                        activeCategoryIndex--; 
-                    }
-                } else if (key === "ArrowDown") {
-                    if (activeCategoryIndex < totalCategories - 1) { 
-                        activeCategoryIndex++; 
-                    }
-                } else if (key === "ArrowRight" || key === "Enter") {
-                    if (activeCategoryIndex === searchMenuIndex) {
-                        setFocus('search');
-                    } else if (categories.length > 0) {
-                        // Ir a los ítems de la categoría seleccionada
-                        activeItemIndex = 0;
-                        searchResults = null;
-                        setFocus('items');
-                    }
-                }
-                
-                // Si el foco estaba en el menú o búsqueda, actualiza la visualización
-                if (key === "ArrowUp" || key === "ArrowDown" || key === "ArrowRight") {
-                    setFocus('menu'); // Vuelve a renderizar para aplicar el foco del menú
-                }
-                return;
-            }
-            
-            if (focusArea === 'items') {
-                const dataSet = searchResults || (categories.length > 0 ? currentData[categories[activeCategoryIndex]] : null);
-                
-                if (!dataSet || dataSet.length === 0) {
-                     if (key === "ArrowLeft") setFocus('menu');
-                     return; 
-                }
-
-                if (key === "ArrowRight") {
-                    if (activeItemIndex < dataSet.length - 1) { activeItemIndex++; setFocus('items'); }
-                } else if (key === "ArrowLeft") {
-                    if (activeItemIndex > 0) { activeItemIndex--; setFocus('items'); }
-                    else {
-                        // 🛑 CLAVE: Vuelve al menú lateral al llegar al primer ítem
-                        setFocus('menu');
-                        // Asegura que el foco del menú permanezca en la categoría actual
-                    }
-                } else if (key === "ArrowDown" || key === "ArrowUp") { 
-                    // 🛑 CLAVE: En la vista única, las flechas verticales no hacen nada en la fila
-                } else if (key === "Enter") {
-                    const movie = dataSet[activeItemIndex]; 
-                    openModal(movie, searchResults !== null);
-                }
-            }
-        });
-
-        // --- Inicialización DOM ---
-        document.addEventListener('DOMContentLoaded', () => {
-            categoriesDiv = document.getElementById("categories");
-            sliderDiv = document.getElementById("slider");
-            sidebarDiv = document.getElementById("sidebar"); // Nuevo
-            searchPlaceholder = document.getElementById("sidebar-search-placeholder"); // Nuevo
-            searchBox = document.getElementById("searchBox");
-            searchInput = document.getElementById("searchInput");
-            modal = document.getElementById("modal");
-            
-            // 🛑 Calcula el índice de la búsqueda (antes de la categoría 0)
-            searchMenuIndex = -1; 
-            
-            document.getElementById("modalBackBtn").onclick = closeModal;
-            document.getElementById("modalPlayBtn").onclick = playMovie;
-            searchInput.addEventListener("input", e => { handleSearchInput(e.target.value); });
-            
-            loadData();
-        });
-        
-        // La función playMovie no necesita cambios ya que usa activeCategoryIndex y activeItemIndex.
         function playMovie() { 
             let movie;
-            const isSearch = searchResults !== null;
+            const isSearch = modal.dataset.isSearch === "true";
             
             if (isSearch) {
                 movie = searchResults[activeItemIndex];
@@ -572,7 +410,7 @@
 
             if (movie && movie.link) {
                 console.log("Reproduciendo:", movie.link);
-                // Aquí iría la llamada a tu reproductor de video (ej: window.location.href = movie.link;)
+                // Aquí iría la llamada a tu reproductor
                 alert(`Reproduciendo: ${movie.title}\nEnlace: ${movie.link}`);
             } else {
                 alert("ERROR: No se encontró el enlace de la película.");
@@ -580,23 +418,97 @@
             closeModal();
         }
 
-        // SLIDER (Rotación) - (No cambia)
-        function startSliderRotation() {
-            if (window.sliderInterval) clearInterval(window.sliderInterval); 
-            if (sliderImages.length > 1) {
-                window.sliderInterval = setInterval(rotateSlider, 8000); 
-            } else if (sliderImages.length === 1) {
-                sliderImages[0].classList.add('active'); 
+        function handleSearchInput(term) {
+            const normalizedTerm = term.toLowerCase().trim();
+            
+            if (normalizedTerm === "") {
+                searchResults = null;
+                activeCategoryIndex = 0; activeItemIndex = 0;
+                setFocus('slider'); 
+            } else {
+                const filtered = allMovies.filter(m => m.title.toLowerCase().includes(normalizedTerm));
+                searchResults = filtered;
+                activeCategoryIndex = 0; // En búsqueda, solo hay una categoría (resultados)
+                activeItemIndex = 0;
+                setFocus('items'); 
             }
         }
 
-        function rotateSlider() {
-            if (sliderImages.length === 0) return;
-            sliderImages[currentSliderIndex].classList.remove('active');
-            currentSliderIndex = (currentSliderIndex + 1) % sliderImages.length;
-            sliderImages[currentSliderIndex].classList.add('active');
-        }
+        // --- Lógica de Teclado (Navegación Vertical Restaurada) ---
+        document.addEventListener("keydown", e => {
+            const key = e.key;
 
+            if (focusArea === 'modal') {
+                const currentButtons = modal.querySelectorAll('.modal-buttons button');
+                if (key === "ArrowRight") { if (activeModalButton < currentButtons.length - 1) focusModalButton(activeModalButton + 1); } 
+                else if (key === "ArrowLeft") { if (activeModalButton > 0) focusModalButton(activeModalButton - 1); } 
+                else if (key === "Enter") {
+                    if (currentButtons[activeModalButton] === document.getElementById("modalPlayBtn")) { playMovie(); } 
+                    else { closeModal(); }
+                } else if (key === "Escape") { closeModal(); } 
+                return; 
+            }
+
+            if (focusArea === 'slider') {
+                if (key === "Enter") { openSearchInput(); }
+                else if (key === "ArrowDown" && categories.length > 0) {
+                    activeCategoryIndex = 0; activeItemIndex = 0;
+                    setFocus('items');
+                }
+                return;
+            }
+            
+            if (focusArea === 'items') {
+                // Obtiene el set de datos correcto (categoría actual o resultados de búsqueda)
+                const dataSet = searchResults || (categories.length > 0 ? currentData[categories[activeCategoryIndex]] : null);
+                const totalCategories = searchResults ? 1 : categories.length; // 1 si es búsqueda, sino el total real.
+                
+                if (!dataSet || dataSet.length === 0) {
+                     if (key === "ArrowUp") setFocus('slider');
+                     return; 
+                }
+
+                if (key === "ArrowRight") {
+                    if (activeItemIndex < dataSet.length - 1) { activeItemIndex++; setFocus('items'); }
+                } else if (key === "ArrowLeft") {
+                    if (activeItemIndex > 0) { activeItemIndex--; setFocus('items'); }
+                } else if (key === "ArrowDown") {
+                    // Navega a la siguiente categoría (fila) si no estamos en búsqueda
+                    if (!searchResults && activeCategoryIndex < totalCategories - 1) { 
+                        activeCategoryIndex++; activeItemIndex = 0; setFocus('items'); 
+                    }
+                } else if (key === "ArrowUp") { 
+                    // Navega a la categoría anterior o al slider
+                    if (searchResults || activeCategoryIndex === 0) { 
+                        setFocus('slider');
+                        searchResults = null; // Limpia la búsqueda si volvemos arriba
+                        searchInput.value = '';
+                    } else { 
+                        activeCategoryIndex--; activeItemIndex = 0; setFocus('items'); 
+                    }
+                } else if (key === "Enter") {
+                    const movie = dataSet[activeItemIndex]; 
+                    openModal(movie, searchResults !== null);
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            categoriesDiv = document.getElementById("categories");
+            sliderDiv = document.getElementById("slider");
+            searchBtn = document.getElementById("searchBtn");
+            searchBox = document.getElementById("searchBox");
+            searchInput = document.getElementById("searchInput");
+            modal = document.getElementById("modal");
+            modalButtons = modal.querySelectorAll('.modal-buttons button'); 
+
+            document.getElementById("modalBackBtn").onclick = closeModal;
+            document.getElementById("modalPlayBtn").onclick = playMovie;
+            searchBtn.addEventListener("click", () => { setFocus('slider'); openSearchInput(); });
+            searchInput.addEventListener("input", e => { handleSearchInput(e.target.value); });
+            
+            loadData();
+        });
     </script>
 </body>
 </html>
