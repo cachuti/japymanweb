@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Box Zone TV - Categoría Única</title>
+    <title>Box Zone TV - Categoría Única (Superposición Corregida)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -15,7 +15,7 @@
             color:#fff; 
             font-family:Arial, sans-serif; 
             height: 100%; 
-            overflow: hidden; /* EVITA EL SCROLL VERTICAL EN TODA LA PANTALLA */
+            overflow: hidden; 
         }
 
         #content-wrapper {
@@ -32,6 +32,7 @@
             background:#222; 
             overflow: hidden; 
             flex-shrink: 0; 
+            /* Se ha quitado el z-index alto para que no tape los ítems */
         }
         .slider img { 
             width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; 
@@ -44,7 +45,8 @@
 
         /* Estilos Lupa y Foco */
         .header { 
-            position:absolute; top:10px; right:20px; font-size:22px; cursor:pointer; z-index:10; 
+            position:absolute; top:10px; right:20px; font-size:22px; cursor:pointer; 
+            z-index: 100; /* Alto z-index para que la lupa/búsqueda siempre esté visible */
             transition: none; 
         }
         .header.focused { 
@@ -52,17 +54,16 @@
         }
         .search-box { 
             display:none; 
-            position:absolute; top:50px; right:20px; z-index:10; 
+            position:absolute; top:50px; right:20px; z-index: 100; 
         }
         .search-box input { padding:8px; font-size:16px; border-radius:4px; border:none; }
 
-        /* 🛑 CONTENEDOR DE CATEGORÍAS FIJO 🛑 */
-        /* Ya no necesita scroll-y: auto porque solo hay una categoría. */
+        /* CONTENEDOR DE CATEGORÍAS FIJO */
         #categories {
             flex-grow: 1; 
-            overflow: hidden; /* Eliminamos el scroll interno vertical */
+            overflow: hidden; 
             padding-bottom: 20px; 
-            transition: all 0.3s ease; /* Transición suave al cambiar de categoría */
+            transition: all 0.3s ease; 
         }
 
         /* Estilos de Categoría e Ítems */
@@ -73,12 +74,14 @@
             overflow-x: auto; 
             padding-bottom: 10px; 
             scrollbar-width: none; 
+            /* 🛑 CLAVE 1: Alto z-index para la fila, asegurando que los ítems superpongan el slider */
+            position: relative; /* Necesario para que z-index funcione */
+            z-index: 50; 
         } 
         .items::-webkit-scrollbar { 
             display: none; 
         }
         .item { 
-            /* Tamaños ajustados */
             width:150px; 
             height:250px; 
             margin:0 10px; 
@@ -87,10 +90,15 @@
             transition:transform 0.2s; cursor:pointer;
         }
         .item img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
-        .item.focused { transform:scale(1.2); border:3px solid #e50914; z-index:5; }
+        .item.focused { 
+            transform:scale(1.2); 
+            border:3px solid #e50914; 
+            /* 🛑 CLAVE 2: Z-index muy alto para el ítem enfocado */
+            z-index: 60; 
+        }
         
-        /* Estilos Modal */
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); color:#fff; justify-content:center; align-items:center; z-index:100; }
+        /* Estilos Modal (z-index: 100 siempre es lo más alto) */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); color:#fff; justify-content:center; align-items:center; z-index:1000; }
         .modal-content { background:#111; padding:20px; border-radius:8px; max-width:90%; flex-direction: column; text-align: center; } 
         .modal img { width:100%; max-width: 200px; height:auto; object-fit:cover; margin:0 auto 10px; }
         .modal-buttons { margin-top:20px; display: flex; justify-content: center; flex-wrap: wrap; }
@@ -247,10 +255,10 @@
             }
         });
         
-        // 🛑 MODIFICACIÓN CLAVE: Renderiza SOLO la categoría activa 🛑
+        // Renderiza SOLO la categoría activa
         function renderCategory(filteredData = null) {
             if (!categoriesDiv) return; 
-            categoriesDiv.innerHTML = ""; // Limpia todas las categorías anteriores
+            categoriesDiv.innerHTML = ""; 
             
             let dataToRender = filteredData || (categories.length > 0 ? currentData[categories[activeCategoryIndex]] : null);
             let catName = filteredData ? `Resultados de Búsqueda para: "${searchInput.value}"` : (categories.length > 0 ? categories[activeCategoryIndex] : "Sin Contenido");
@@ -259,15 +267,12 @@
                 const section = document.createElement("div");
                 section.classList.add("category");
                 
-                // Añade el título de la categoría
                 section.innerHTML = `<h2>${catName}</h2>`;
                 
                 const itemsContainer = document.createElement("div"); 
                 itemsContainer.classList.add("items");
                 
-                // Renderiza los ítems
                 dataToRender.forEach((m, i) => {
-                    // Determina si este es el ítem activo
                     const isFocused = i === activeItemIndex && !focusOnSearch;
                     const item = createItemElement(m, i, isFocused);
                     item.addEventListener('click', () => {
@@ -298,9 +303,6 @@
                         inline: 'center', 
                         block: 'nearest' 
                     });
-                    
-                    // 🛑 Quitamos el scroll vertical de categoríasDiv, ya que ahora solo hay una
-                    // categoriesDiv.scrollTop = 0; // Asegura que la única categoría esté al inicio
                 }
             }
         }
