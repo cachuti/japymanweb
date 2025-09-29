@@ -60,7 +60,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
         var firebaseConfig = {
-            // Reemplaza esto con tu configuración de Firebase
+            // Configuración de Firebase
             apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
             authDomain: "chunito-d25bb.firebaseapp.com",
             projectId: "chunito-d25bb",
@@ -110,11 +110,13 @@
                                 return (currentIngresos || 0) - 1;
                             }, (error, committed, snapshot) => {
                                 if (committed) {
-                                    window.location.href = "go:hshshsgdhh";
+                                    // ✅ CORRECCIÓN CLAVE: Redirige a principal.html
+                                    window.location.href = "principal.html"; 
                                 }
                             });
                         } else {
-                            window.location.href = "go:hshshsgdhh";
+                            // ✅ CORRECCIÓN CLAVE: Redirige a principal.html (re-login)
+                            window.location.href = "principal.html"; 
                         }
                     }, 1500); // Espera 1.5 segundos para mostrar el mensaje
                 }
