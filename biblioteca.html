@@ -10,10 +10,9 @@
         /* Estilos Base */
         body { margin:0; background:#000; color:#fff; font-family:Arial, sans-serif; overflow:hidden; }
         
-        /* SLIDER */
+        /* SLIDER (Altura: 330px) */
         .slider { 
             width:100%; 
-            /* REQUERIMIENTO 1: Altura aumentada a 330px */
             height:330px; 
             position:relative; 
             background:#222; 
@@ -55,9 +54,9 @@
             display: none; /* Chrome, Safari */
         }
         .item { 
-            /* REQUERIMIENTO 2: Nuevas medidas de los ítems */
-            width:200px; 
-            height:300px; 
+            /* 🔴 MODIFICACIÓN CLAVE: Reducción de 50px de ancho y alto */
+            width:150px; /* 200px - 50px */
+            height:250px; /* 300px - 50px */
             margin:0 10px; 
             background:#333; border-radius:6px; 
             display:flex; align-items:center; justify-content:center; flex-shrink:0; 
@@ -66,7 +65,7 @@
         .item img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
         .item.focused { transform:scale(1.2); border:3px solid #e50914; z-index:5; }
         
-        /* Estilos Modal (REQUERIMIENTO 5: Cumple su función) */
+        /* Estilos Modal */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); color:#fff; justify-content:center; align-items:center; z-index:100; }
         .modal-content { background:#111; padding:20px; border-radius:8px; max-width:90%; flex-direction: column; text-align: center; } 
         .modal img { width:100%; max-width: 200px; height:auto; object-fit:cover; margin:0 auto 10px; }
@@ -133,7 +132,7 @@
         // Variables DOM globales 
         let categoriesDiv, sliderDiv, searchBtn, searchBox, searchInput, modal, modalButtons;
 
-        // --- Funciones de SLIDER (REQUERIMIENTO 3: Decorativo) ---
+        // --- Funciones de SLIDER (Decorativo) ---
         function startSliderRotation() {
             if (window.sliderInterval) clearInterval(window.sliderInterval); 
 
@@ -172,7 +171,7 @@
         // --- Fin Funciones de SLIDER ---
 
 
-        // --- Funciones de Foco y UI ---
+        // --- Funciones de Foco y UI (Se mantiene la lógica de navegación) ---
 
         function toggleSearch(activate) {
             focusOnSearch = activate;
@@ -226,7 +225,7 @@
             }
         });
         
-        // RENDERIZADO y Scroll Controlado (AJUSTADO PARA TV)
+        // RENDERIZADO y Scroll Controlado (Usa scrollIntoView para evitar desbordes en TV)
         function renderCategory(filteredData = null) {
             if (!categoriesDiv) return; 
             categoriesDiv.innerHTML = "";
@@ -260,13 +259,13 @@
                  categoriesDiv.innerHTML = `<div class="category"><h2>No se encontraron resultados para "${searchInput.value}".</h2></div>`;
             }
 
-            // 🟢 MODIFICACIÓN PARA EVITAR QUE LOS ÍTEMS SALGAN DE LA PANTALLA (TV)
+            // Mantiene el ítem enfocado visible sin desbordar (Optimización para TV)
             if (!focusOnSearch) {
                 const focusedElement = document.querySelector(".item.focused");
                 if (focusedElement) {
                     focusedElement.scrollIntoView({ 
                         behavior: 'smooth', 
-                        inline: 'center', // Desplazamiento horizontal para mantenerlo visible
+                        inline: 'center', 
                         block: 'nearest' 
                     });
                 }
@@ -298,14 +297,14 @@
             focusModalButton(0); 
         }
 
-        // Función Atrás (REQUERIMIENTO 6: Vuelve al menú principal)
+        // Función Atrás (Vuelve al menú principal)
         function closeModal() { 
             modal.style.display = "none";
             focusOnModal = false;
-            focusItem(); // El foco regresa al último ítem seleccionado en el menú principal.
+            focusItem(); 
         }
 
-        // Función Reproducir (REQUERIMIENTO 7: Inicia la reproducción)
+        // Función Reproducir (Inicia la reproducción)
         function playMovie() { 
             let movie;
             
@@ -354,7 +353,7 @@
             modal = document.getElementById("modal");
             
             loadSliderImages(); 
-            toggleSearch(true); // Foco inicial en la Lupa
+            toggleSearch(true); 
 
             // Enlazamos los eventos onclick de los botones del modal
             document.getElementById("modalBackBtn").onclick = closeModal;
@@ -381,9 +380,9 @@
                         if (activeModalButton > 0) focusModalButton(activeModalButton - 1);
                     } else if (key === "Enter") {
                         if (activeModalButton === 0) { 
-                            closeModal(); // Atrás
+                            closeModal(); 
                         } else if (activeModalButton === 1) { 
-                            playMovie(); // Reproducir
+                            playMovie(); 
                         }
                     } else if (key === "Escape") { closeModal(); } 
                     return; 
@@ -466,4 +465,3 @@
     </script>
 </body>
 </html>
-
