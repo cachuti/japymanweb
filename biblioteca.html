@@ -1,175 +1,245 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Box Zone TV - HBO Max Style</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  body {
-    margin: 0;
-    background: linear-gradient(180deg, #0b0b14 0%, #1a1a2e 100%);
-    font-family: 'Roboto', sans-serif;
-    color: #fff;
-    overflow-x: hidden;
-  }
-  header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(10, 10, 20, 0.95);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 40px;
-    z-index: 1000;
-  }
-  header h1 {
-    font-size: 26px;
-    color: #b366ff;
-    margin: 0;
-  }
-  nav a {
-    margin: 0 15px;
-    text-decoration: none;
-    color: #fff;
-    font-size: 18px;
-  }
-  nav a:focus, nav a:hover {
-    color: #b366ff;
-    outline: none;
-  }
-  .hero {
-    margin-top: 80px;
-    width: 100%;
-    height: 400px;
-    background: url('https://via.placeholder.com/1280x400/1a1a2e/ffffff?text=Destacado') no-repeat center center;
-    background-size: cover;
-    position: relative;
-  }
-  .hero::after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, transparent 60%, #0b0b14 100%);
-    top: 0;
-    left: 0;
-  }
-  .section {
-    padding: 20px 40px;
-  }
-  .section h2 {
-    font-size: 22px;
-    margin-bottom: 10px;
-    color: #fff;
-  }
-  .row {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .row::-webkit-scrollbar {
-    display: none;
-  }
-  .item {
-    min-width: 180px;
-    height: 270px;
-    background: #222;
-    border-radius: 12px;
-    margin-right: 12px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    flex-shrink: 0;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .item:focus {
-    outline: 3px solid #b366ff;
-    transform: scale(1.1);
-    z-index: 10;
-    box-shadow: 0 0 20px rgba(179,102,255,0.7);
-  }
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-  }
-  .modal-content {
-    background: #111;
-    padding: 20px;
-    border-radius: 12px;
-    max-width: 80%;
-    color: #fff;
-  }
-  .close {
-    position: absolute;
-    top: 20px;
-    right: 40px;
-    font-size: 24px;
-    color: #fff;
-    cursor: pointer;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Box Zone TV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    header {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+    }
+    #slider {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    #slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+    #slider img.active {
+      opacity: 1;
+    }
+    #search {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+    #search input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      outline: none;
+    }
+    #categoria {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      gap: 15px;
+      padding: 10px;
+      background: rgba(0,0,0,0.6);
+      overflow-x: auto;
+    }
+    .item {
+      flex: 0 0 auto;
+      width: 170px;
+      height: 270px;
+      background: #222;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      outline: none;
+      border: 2px solid transparent;
+    }
+    .item img {
+      width: 100%;
+      height: 80%;
+      object-fit: cover;
+    }
+    .item span {
+      display: block;
+      text-align: center;
+      padding: 5px;
+    }
+    .item:focus {
+      border: 2px solid #0ff;
+    }
+    /* Modal */
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      z-index: 10;
+    }
+    #modalContent {
+      display: flex;
+      gap: 20px;
+      max-width: 800px;
+      background: #111;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    #modalContent img {
+      width: 300px;
+      height: 400px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    #modalContent .info {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    #modalContent button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+    }
+    #modalContent button:focus {
+      border: 2px solid #0ff;
+    }
+    .btn-back { background: #444; color: #fff; }
+    .btn-play { background: #0ff; color: #000; }
+  </style>
 </head>
 <body>
-<header>
-  <h1>Box Zone TV</h1>
-  <nav>
-    <a href="#inicio" tabindex="0">Inicio</a>
-    <a href="#buscar" tabindex="0">Buscar</a>
-    <a href="#milista" tabindex="0">Mi lista</a>
-  </nav>
-</header>
-<div class="hero"></div><div class="section" id="recomendados">
-  <h2>Recomendados</h2>
-  <div class="row">
-    <div class="item" tabindex="0" style="background-image:url('https://via.placeholder.com/180x270/6633cc/ffffff?text=1');"></div>
-    <div class="item" tabindex="0" style="background-image:url('https://via.placeholder.com/180x270/8844dd/ffffff?text=2');"></div>
-    <div class="item" tabindex="0" style="background-image:url('https://via.placeholder.com/180x270/aa55ee/ffffff?text=3');"></div>
-  </div>
-</div><div class="section" id="masvistos">
-  <h2>Lo más visto</h2>
-  <div class="row">
-    <div class="item" tabindex="0" style="background-image:url('https://via.placeholder.com/180x270/5522bb/ffffff?text=4');"></div>
-    <div class="item" tabindex="0" style="background-image:url('https://via.placeholder.com/180x270/331199/ffffff?text=5');"></div>
-    <div class="item" tabindex="0" style="background-image:url('https://via.placeholder.com/180x270/220077/ffffff?text=6');"></div>
-  </div>
-</div><div class="modal" id="modal">
-  <span class="close" id="close">&times;</span>
-  <div class="modal-content" id="modal-content">
-    <h2>Título</h2>
-    <p>Descripción del contenido seleccionado.</p>
-  </div>
-</div><script>
-  const items = document.querySelectorAll('.item');
-  const modal = document.getElementById('modal');
-  const close = document.getElementById('close');
+  <header>
+    <div id="slider"></div>
+    <div id="search">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar...">
+    </div>
+  </header>
 
-  items.forEach(item => {
-    item.addEventListener('click', () => {
-      document.getElementById('modal-content').innerHTML = `
-        <h2>Contenido</h2>
-        <p>Has seleccionado este ítem.</p>
-      `;
-      modal.style.display = 'flex';
+  <div id="categoria"></div>
+
+  <!-- Modal -->
+  <div id="modal">
+    <div id="modalContent">
+      <img id="modalImg" src="" alt="">
+      <div class="info">
+        <div id="modalDesc"></div>
+        <button class="btn-back" id="btnBack">Atrás</button>
+        <button class="btn-play" id="btnPlay">Reproducir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+      authDomain: "chunito-d25bb.firebaseapp.com",
+      projectId: "chunito-d25bb",
+      storageBucket: "chunito-d25bb.firebasestorage.app",
+      messagingSenderId: "748622352005",
+      appId: "1:748622352005:web:f9ea6d2da8af92f76123ec",
+      measurementId: "G-DC3XNLCX9Z",
+      databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Slider
+    const sliderDiv = document.getElementById("slider");
+    let sliderImgs = [];
+    let currentSlide = 0;
+
+    db.ref("Sergio").on("value", snap => {
+      sliderImgs = [];
+      sliderDiv.innerHTML = "";
+      snap.forEach(child => {
+        const img = document.createElement("img");
+        img.src = child.val().imagen;
+        sliderDiv.appendChild(img);
+        sliderImgs.push(img);
+      });
+      if (sliderImgs.length > 0) {
+        sliderImgs[0].classList.add("active");
+      }
     });
-  });
 
-  close.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
+    setInterval(() => {
+      if (sliderImgs.length > 0) {
+        sliderImgs[currentSlide].classList.remove("active");
+        currentSlide = (currentSlide + 1) % sliderImgs.length;
+        sliderImgs[currentSlide].classList.add("active");
+      }
+    }, 10000);
 
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') modal.style.display = 'none';
-  });
-</script></body>
+    // Categoría (solo 1 categoría)
+    const categoriaDiv = document.getElementById("categoria");
+    db.ref("Ariel/Accion").on("value", snap => {
+      categoriaDiv.innerHTML = "";
+      snap.forEach(child => {
+        const data = child.val();
+        const item = document.createElement("div");
+        item.className = "item";
+        item.tabIndex = 0;
+        item.innerHTML = `<img src="${data.imagen}"><span>${data.titulo}</span>`;
+        item.addEventListener("click", () => openModal(data));
+        categoriaDiv.appendChild(item);
+      });
+    });
+
+    // Modal
+    const modal = document.getElementById("modal");
+    const modalImg = document.getElementById("modalImg");
+    const modalDesc = document.getElementById("modalDesc");
+    const btnBack = document.getElementById("btnBack");
+    const btnPlay = document.getElementById("btnPlay");
+    let currentUrl = "";
+
+    function openModal(data) {
+      modal.style.display = "flex";
+      modalImg.src = data.imagen;
+      modalDesc.innerHTML = `<h2>${data.titulo}</h2><p>${data.descripcion || "Sin descripción"}</p>`;
+      currentUrl = data.enlace;
+      btnBack.focus();
+    }
+    btnBack.onclick = () => { modal.style.display = "none"; };
+    btnPlay.onclick = () => { window.open(currentUrl, "_blank"); };
+
+    // Buscar
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("keyup", e => {
+      const text = e.target.value.toLowerCase();
+      document.querySelectorAll(".item span").forEach(el => {
+        const parent = el.closest(".item");
+        parent.style.display = el.innerText.toLowerCase().includes(text) ? "block" : "none";
+      });
+    });
+  </script>
+</body>
 </html>
