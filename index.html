@@ -110,13 +110,13 @@
                                 return (currentIngresos || 0) - 1;
                             }, (error, committed, snapshot) => {
                                 if (committed) {
-                                    // ✅ CORRECCIÓN CLAVE: Redirige a principal.html
-                                    window.location.href = "principal.html"; 
+                                    // ✅ CORRECCIÓN FINAL: Redirige a menu.html
+                                    window.location.href = "menu.html"; 
                                 }
                             });
                         } else {
-                            // ✅ CORRECCIÓN CLAVE: Redirige a principal.html (re-login)
-                            window.location.href = "principal.html"; 
+                            // ✅ CORRECCIÓN FINAL: Redirige a menu.html (re-login)
+                            window.location.href = "menu.html"; 
                         }
                     }, 1500); // Espera 1.5 segundos para mostrar el mensaje
                 }
