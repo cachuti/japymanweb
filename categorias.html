@@ -122,7 +122,7 @@
             } else if(destino === 'extras') {
                 window.location.href = 'biblioteca.html';
             } else if(destino === 'agenda') {
-                window.location.href = 'tvboxzone.html'; // <-- Aquí se abre tu HTML de TV BOX ZONE
+                window.location.href = 'tvboxzone.html'; // <-- Este es tu archivo de destino
             } else if(destino === 'comunidad') {
                 window.location.href = 'comunidad.html';
             }
@@ -130,9 +130,9 @@
 
         window.onload = () => {
             const opciones = document.querySelectorAll('.opcion');
+            // Enfoca el primer elemento para navegación por teclado/control remoto
             if(opciones.length > 0) opciones[0].focus();
         };
     </script>
 </body>
 </html>
-
