@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Box Zone TV</title>
+<title>Box Zone TV - Foco en Reproducir</title>
 <style>
 body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; overflow-x:hidden; }
 
@@ -20,8 +20,38 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
 .categoria { margin-bottom:0; display:none; }
 .categoria.active { display:block; }
 .categoria h2 { margin:10px 0; }
-.items { display: flex; gap:15px; overflow-x:hidden; padding-bottom:10px; max-height:260px; }
-.item { flex:0 0 auto; width:160px; height:260px; background:#111; border-radius:8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; outline:none; }
+
+/* El scroll debe estar permitido */
+.items {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto; /* Permite el desplazamiento horizontal */
+    scroll-snap-type: x mandatory; /* Mejora la experiencia de carrusel */
+    padding-bottom: 10px;
+    max-height: 260px;
+    /* Ocultamos la barra de scroll, que no se usa en TV */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+/* Regla para ocultar la barra de scroll en Chrome/Safari */
+.items::-webkit-scrollbar {
+    display: none;
+}
+
+.item {
+    flex: 0 0 auto;
+    width: 160px;
+    height: 260px;
+    background: #111;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    outline: none;
+    scroll-snap-align: start; /* Ayuda al 'scroll-snap' */
+}
+
 .item img { width:100%; height:200px; object-fit:cover; border-radius:8px; }
 .item span { margin-top:5px; text-align:center; font-size:14px; color:#fff; background:none; }
 .item:focus { border:2px solid red; }
@@ -32,70 +62,76 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
 .modal img { width:100px; height:200px; object-fit:cover; border-radius:8px; }
 .modal-info { flex:1; display:flex; flex-direction:column; justify-content:space-between; }
 .buttons { display:flex; gap:15px; }
-.buttons button { padding:10px 20px; border:none; border-radius:6px; cursor:pointer; font-size:16px; font-weight:bold; }
+.buttons button { padding:10px 20px; border:none; border-radius:6px; cursor:pointer; font-size:16px; font-weight:bold; 
+                  /* AÑADIMOS TABINDEX A LOS BOTONES PARA ASEGURAR QUE SE PUEDAN ENFOCAR */
+                  tabIndex="0";
+                }
 .btn-volver { background:#666; color:#fff; }
 .btn-play { background:#28a745; color:#fff; }
+
+/* 🚨 DETALLE IMPORTANTE: Asegurar que los botones tengan el borde de foco */
+.buttons button:focus {
+    outline: 3px solid yellow; /* Borde amarillo para resaltar el foco */
+    outline-offset: 2px;
+}
 </style>
 </head>
 <body>
 
-<!-- Slider -->
 <div class="slider" id="slider"></div>
 
-<!-- Lupa -->
 <div id="buscador">
-  <input type="text" id="inputBuscar" placeholder="Buscar...">
-  <button id="btnBuscar">🔍</button>
+  <input type="text" id="inputBuscar" placeholder="Buscar...">
+  <button id="btnBuscar">🔍</button>
 </div>
 
-<!-- Categorías -->
 <div class="categorias" id="categorias"></div>
 
-<!-- Modal -->
 <div id="modal" class="modal">
-  <div class="modal-content">
-    <img id="modal-image" src="">
-    <div class="modal-info">
-      <div>
-        <h2 id="modal-title"></h2>
-        <p id="modal-desc"></p>
-      </div>
-      <div class="buttons">
-        <button class="btn-volver" onclick="cerrarModal()">Volver</button>
-        <button class="btn-play" onclick="reproducir()">Reproducir</button>
-      </div>
-    </div>
-  </div>
+  <div class="modal-content">
+    <img id="modal-image" src="">
+    <div class="modal-info">
+      <div>
+        <h2 id="modal-title"></h2>
+        <p id="modal-desc"></p>
+      </div>
+      <div class="buttons">
+                <button class="btn-volver" onclick="cerrarModal()" tabindex="0">Volver</button>
+        <button class="btn-play" onclick="reproducir()" id="btnReproducir" tabindex="0">Reproducir</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
-  authDomain: "chunito-d25bb.firebaseapp.com",
-  databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/",
-  projectId: "chunito-d25bb",
-  storageBucket: "chunito-d25bb.appspot.com",
-  messagingSenderId: "748622352005",
-  appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
+  apiKey: "AIzaSyD6Tj5S2TvV_k8jq0P4ET_Mxo_YgoWtBwo",
+  authDomain: "chunito-d25bb.firebaseapp.com",
+  databaseURL: "https://chunito-d25bb-default-rtdb.firebaseio.com/",
+  projectId: "chunito-d25bb",
+  storageBucket: "chunito-d25bb.appspot.com",
+  messagingSenderId: "748622352005",
+  appId: "1:748622352005:web:f9ea6d2da8af92f76123ec"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// ... (El código del Slider y la Carga de Categorías permanece igual) ...
 // Slider
 const sliderDiv = document.getElementById("slider");
 db.ref("Pingo/sliders").on("value", snap => {
-  sliderDiv.innerHTML = "";
-  const sliders = [];
-  snap.forEach(s => sliders.push(s.val()));
-  if(sliders.length>0){
-    let idx=0;
-    const img=document.createElement("img");
-    img.src=sliders[idx];
-    sliderDiv.appendChild(img);
-    setInterval(()=>{ idx=(idx+1)%sliders.length; img.src=sliders[idx]; },10000);
-  }
+  sliderDiv.innerHTML = "";
+  const sliders = [];
+  snap.forEach(s => sliders.push(s.val()));
+  if(sliders.length>0){
+    let idx=0;
+    const img=document.createElement("img");
+    img.src=sliders[idx];
+    sliderDiv.appendChild(img);
+    setInterval(()=>{ idx=(idx+1)%sliders.length; img.src=sliders[idx]; },10000);
+  }
 });
 
 // Categorías
@@ -104,35 +140,39 @@ let categoriasArray = [];
 let indiceCat = 0;
 
 db.ref("Ura/categorias").on("value", snap=>{
-  categoriasDiv.innerHTML = "";
-  categoriasArray = [];
-  snap.forEach(catSnap=>{
-    const cat = catSnap.val();
-    const catDiv = document.createElement("div");
-    catDiv.className="categoria";
-    catDiv.innerHTML=`<h2>${cat.nombre}</h2><div class="items"></div>`;
-    const itemsDiv = catDiv.querySelector(".items");
+  categoriasDiv.innerHTML = "";
+  categoriasArray = [];
+  snap.forEach(catSnap=>{
+    const cat = catSnap.val();
+    const catDiv = document.createElement("div");
+    catDiv.className="categoria";
+    catDiv.innerHTML=`<h2>${cat.nombre}</h2><div class="items"></div>`;
+    const itemsDiv = catDiv.querySelector(".items");
 
-    if(cat.items){
-      Object.entries(cat.items).reverse().forEach(([k,item])=>{
-        const itemDiv=document.createElement("div");
-        itemDiv.className="item";
-        itemDiv.tabIndex=0;
-        itemDiv.innerHTML=`<img src="${item.imagen}" alt="${item.nombre}"><span>${item.nombre}</span>`;
-        itemDiv.onclick = ()=>abrirModal(item);
-        itemsDiv.insertBefore(itemDiv, itemsDiv.firstChild);
-      });
-    }
-    categoriasArray.push(catDiv);
-    categoriasDiv.appendChild(catDiv);
-  });
-  indiceCat=0;
-  mostrarCategoria(indiceCat);
+    if(cat.items){
+      Object.entries(cat.items).reverse().forEach(([k,item])=>{
+        const itemDiv=document.createElement("div");
+        itemDiv.className="item";
+        itemDiv.tabIndex=0;
+        itemDiv.innerHTML=`<img src="${item.imagen}" alt="${item.nombre}"><span>${item.nombre}</span>`;
+        itemDiv.onclick = ()=>abrirModal(item);
+        itemsDiv.insertBefore(itemDiv, itemsDiv.firstChild);
+      });
+    }
+    categoriasArray.push(catDiv);
+    categoriasDiv.appendChild(catDiv);
+  });
+  indiceCat=0;
+  mostrarCategoria(indiceCat);
 });
 
 function mostrarCategoria(idx){
-  categoriasArray.forEach((c,i)=>{ c.classList.toggle("active", i===idx); });
-  categoriasArray[idx].querySelector(".item")?.focus();
+  categoriasArray.forEach((c,i)=>{ c.classList.toggle("active", i===idx); });
+  const primerItem = categoriasArray[idx].querySelector(".item");
+  if(primerItem){
+    primerItem.focus();
+    centrarItemEnfocado(primerItem);
+  }
 }
 
 // Modal
@@ -140,19 +180,32 @@ const modal=document.getElementById("modal");
 const modalImage=document.getElementById("modal-image");
 const modalTitle=document.getElementById("modal-title");
 const modalDesc=document.getElementById("modal-desc");
+const btnReproducir = document.getElementById("btnReproducir"); // 💡 Elemento del botón
 let currentUrl="";
 
+// 🚀 FUNCIÓN MODIFICADA: Ahora enfoca el botón de Reproducir
 function abrirModal(item){
-  modalImage.src=item.imagen;
-  modalTitle.textContent=item.nombre;
-  modalDesc.textContent=item.descripcion||"Sin descripción";
-  currentUrl=item.url;
-  modal.style.display="flex";
+  modalImage.src=item.imagen;
+  modalTitle.textContent=item.nombre;
+  modalDesc.textContent=item.descripcion||"Sin descripción";
+  currentUrl=item.url;
+  modal.style.display="flex";
+
+  // 🔑 CAMBIO CLAVE: Enfoca el botón de Reproducir
+  // Usamos setTimeout para asegurar que el DOM esté listo antes de enfocar
+  setTimeout(() => {
+    btnReproducir.focus();
+  }, 50);
 }
 
-function cerrarModal(){ 
-  modal.style.display="none"; 
-  categoriasArray[indiceCat].querySelector(".item")?.focus(); 
+function cerrarModal(){ 
+  modal.style.display="none"; 
+  const itemQueAbrio = categoriasArray[indiceCat].querySelector(".item:focus");
+  if(itemQueAbrio){
+    centrarItemEnfocado(itemQueAbrio);
+  } else {
+    categoriasArray[indiceCat].querySelector(".item")?.focus();
+  }
 }
 function reproducir(){ if(currentUrl) window.open(currentUrl,"_blank"); }
 
@@ -161,42 +214,95 @@ const inputBuscar = document.getElementById("inputBuscar");
 const btnBuscar = document.getElementById("btnBuscar");
 
 btnBuscar.addEventListener("click", ()=>{
-  const term = inputBuscar.value.toLowerCase();
-  const items = Array.from(document.querySelectorAll(".item"));
-  if(term.trim()===""){ 
-    // si el input está vacío, mostrar todo
-    items.forEach(it=>it.style.display="flex");
-    categoriasArray[indiceCat].querySelector(".item")?.focus();
-    return;
-  }
-  let encontrados = items.filter(it=>it.querySelector("span").textContent.toLowerCase().includes(term));
-  if(encontrados.length>0){
-    items.forEach(it=>it.style.display="none");
-    encontrados.forEach(it=>it.style.display="flex");
-    encontrados[0].focus();
-  } else {
-    // no encontrado, mostrar todo y foco al primer ítem
-    items.forEach(it=>it.style.display="flex");
-    categoriasArray[indiceCat].querySelector(".item")?.focus();
-  }
+  const term = inputBuscar.value.toLowerCase();
+  const items = Array.from(document.querySelectorAll(".item"));
+  if(term.trim()===""){ 
+    items.forEach(it=>it.style.display="flex");
+    const primerItem = categoriasArray[indiceCat].querySelector(".item");
+    if(primerItem) primerItem.focus();
+    return;
+  }
+  let encontrados = items.filter(it=>it.querySelector("span").textContent.toLowerCase().includes(term));
+  if(encontrados.length>0){
+    items.forEach(it=>it.style.display="none");
+    encontrados.forEach(it=>it.style.display="flex");
+    encontrados[0].focus();
+    centrarItemEnfocado(encontrados[0]);
+  } else {
+    items.forEach(it=>it.style.display="flex");
+    const primerItem = categoriasArray[indiceCat].querySelector(".item");
+    if(primerItem) primerItem.focus();
+    centrarItemEnfocado(primerItem);
+  }
 });
 
-// Navegación categorías y escape
+function centrarItemEnfocado(item){
+  if(!item) return;
+
+  item.scrollIntoView({
+    behavior: 'smooth',
+    block: 'nearest',
+    inline: 'center' 
+  });
+}
+
+// Navegación de categorías, escape y desplazamiento de carrusel con teclado
 window.addEventListener("keydown", e => {
-  if(e.key==="Escape"){
-    inputBuscar.value=""; 
-    document.querySelectorAll(".item").forEach(item=>item.style.display="flex");
-    categoriasArray[indiceCat].querySelector(".item")?.focus();
+  // Manejo de foco en el modal
+  if(modal.style.display === "flex"){
+    // Si el foco está en el modal, solo permite TAB, SHIFT+TAB (navegación entre botones) y ENTER/ESPACIO.
+    // Presionar ESCAPE debe cerrar el modal.
+    if(e.key === "Escape"){
+      cerrarModal();
+      e.preventDefault();
+      return;
+    }
   }
-  else if(e.key==="ArrowDown"){ 
-    if(indiceCat<categoriasArray.length-1){ 
-      indiceCat++; mostrarCategoria(indiceCat); e.preventDefault(); 
-    } 
-  }
-  else if(e.key==="ArrowUp"){ 
-    if(indiceCat>0){ 
-      indiceCat--; mostrarCategoria(indiceCat); e.preventDefault(); 
-    } 
+
+  // Si el modal NO está abierto, aplica la navegación normal del carrusel/categorías
+  else {
+    if(e.key==="Escape"){
+      inputBuscar.value=""; 
+      document.querySelectorAll(".item").forEach(item=>item.style.display="flex");
+      const primerItem = categoriasArray[indiceCat].querySelector(".item");
+      if(primerItem){
+        primerItem.focus();
+        centrarItemEnfocado(primerItem);
+      }
+      e.preventDefault();
+    }
+    // Navegación Vertical entre categorías
+    else if(e.key==="ArrowDown"){ 
+      if(indiceCat<categoriasArray.length-1){ 
+        indiceCat++; mostrarCategoria(indiceCat); e.preventDefault(); 
+      } 
+    }
+    else if(e.key==="ArrowUp"){ 
+      if(indiceCat>0){ 
+        indiceCat--; mostrarCategoria(indiceCat); e.preventDefault(); 
+      } 
+    }
+    // Desplazamiento del carrusel con flechas laterales
+    else if(e.key==="ArrowRight" || e.key==="ArrowLeft"){
+      const itemActual = document.activeElement;
+      
+      if(itemActual && itemActual.classList.contains('item')){
+        let nuevoFoco = null;
+        if(e.key==="ArrowRight"){
+          nuevoFoco = itemActual.nextElementSibling;
+        } else if(e.key==="ArrowLeft"){
+          nuevoFoco = itemActual.previousElementSibling;
+        }
+
+        if(nuevoFoco){
+          nuevoFoco.focus();
+          centrarItemEnfocado(nuevoFoco);
+          e.preventDefault();
+        } else {
+          e.preventDefault();
+        }
+      }
+    }
   }
 });
 </script>
