@@ -14,7 +14,21 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
 
 /* Lupa */
 #buscador { position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:10; display:flex; gap:5px; }
-#buscador input { padding:10px; width:250px; border-radius:6px; border:none; font-size:16px; }
+/* Hacemos el input enfocable y le damos un borde de foco visible */
+#buscador input { 
+    padding:10px; 
+    width:250px; 
+    border-radius:6px; 
+    border:none; 
+    font-size:16px; 
+    outline: 2px solid transparent; /* Base transparente */
+    transition: outline 0.2s;
+}
+/* Estilo de foco para el input (lo que verás al seleccionarlo con el mando) */
+#buscador input:focus {
+    outline: 2px solid yellow;
+}
+
 #buscador button { padding:10px 15px; border:none; border-radius:6px; cursor:pointer; font-size:16px; font-weight:bold; background:#28a745; color:#fff; }
 
 /* Contenedor de Categoría fija abajo */
@@ -29,9 +43,8 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
 }
 .categoria { 
     margin-bottom: 20px; 
-    display: none; /* OCULTA TODAS LAS CATEGORÍAS POR DEFECTO */
+    display: none; 
 }
-/* REGLA CLAVE: SOLO MUESTRA LA CATEGORÍA CON LA CLASE 'ACTIVE' */
 .categoria.active { 
     display: block !important; 
 }
@@ -46,11 +59,9 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
     scroll-snap-type: x mandatory; 
     padding-bottom: 10px;
     max-height: 260px;
-    /* Ocultamos la barra de scroll */
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
 }
-/* Regla para ocultar la barra de scroll en Chrome/Safari */
 .items::-webkit-scrollbar {
     display: none;
 }
@@ -101,7 +112,7 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
 <div class="slider" id="slider"></div>
 
 <div id="buscador">
-  <input type="text" id="inputBuscar" placeholder="Buscar...">
+  <input type="text" id="inputBuscar" placeholder="Buscar..." tabindex="0">
   <button id="btnBuscar">🔍</button> 
 </div>
 
@@ -163,7 +174,7 @@ let currentUrl = "";
 // ====================================================================
 
 function mostrarCategoria(idx) {
-    // CLAVE: Asegura que TODAS estén ocultas antes de mostrar la activa
+    // Asegura que SOLO una categoría esté visible
     categoriasArray.forEach(c => c.style.display = 'none'); 
 
     categoriasArray.forEach((c, i) => { c.classList.toggle("active", i === idx); });
@@ -281,7 +292,6 @@ inputBuscar.addEventListener("keyup", () => {
     const allItems = document.querySelectorAll(".item");
     let primerEncontrado = null;
 
-    // CLAVE: Oculta todas las categorías antes de aplicar el filtro
     categoriasArray.forEach(cat => cat.style.display = 'none');
 
     allItems.forEach(item => {
@@ -293,42 +303,38 @@ inputBuscar.addEventListener("keyup", () => {
             item.style.display = "flex";
             const parentCat = item.closest('.categoria');
             
-            // Si es el primer resultado, asegura que SOLO esta categoría se muestre
             if (!primerEncontrado) {
                 parentCat.style.display = 'block'; 
                 categoriasArray.forEach(c => c.classList.remove("active"));
                 parentCat.classList.add("active");
                 indiceCat = categoriasArray.indexOf(parentCat); 
                 primerEncontrado = item;
-            } else if(parentCat !== primerEncontrado.closest('.categoria')){
-                // Si ya encontramos el primer resultado en una categoría, 
-                // los resultados en OTRAS categorías se muestran, pero la categoría sigue oculta.
-                // Esto es clave para mantener la vista de una sola categoría.
             }
         } else {
             item.style.display = "none";
         }
     });
 
-    // Foco en el primer resultado encontrado y centrado
     if (term !== "" && primerEncontrado) {
         primerEncontrado.focus();
         centrarItemEnfocado(primerEncontrado);
     } else if (term === "") {
-        // Si se borra la búsqueda, vuelve a la navegación normal
         mostrarCategoria(indiceCat);
     }
 });
 
 
 // ====================================================================
-// Manejo de Teclado (TV Remote)
+// Manejo de Teclado (TV Remote) - Ajuste de Lupa
 // ====================================================================
 
 window.addEventListener("keydown", e => {
-    // Si el foco está en el input, permite escribir y salir con Enter
-    if (document.activeElement === inputBuscar) {
-        if (e.key === "Enter") {
+    const itemActual = document.activeElement;
+    
+    // 🔑 CLAVE: Si el foco está en la lupa (inputBuscar)
+    if (itemActual === inputBuscar) {
+        if (e.key === "ArrowDown" || e.key === "Enter") {
+            // Ir a la primera categoría visible
             const primerVisible = document.querySelector(".categoria.active .item:not([style*='display: none'])");
             if (primerVisible) {
                 primerVisible.focus();
@@ -336,7 +342,8 @@ window.addEventListener("keydown", e => {
             }
             e.preventDefault();
         }
-        return; 
+        // Permitir escribir (las flechas Izq/Der mueven el cursor de texto)
+        return;
     }
     
     // Manejo de foco en el modal
@@ -348,15 +355,11 @@ window.addEventListener("keydown", e => {
         return; 
     }
 
-    // Navegación principal
-    const itemActual = document.activeElement;
-    
     // ESCAPE: Limpia la búsqueda y vuelve a enfocar el buscador
     if (e.key === "Escape") {
         inputBuscar.value = "";
         document.querySelectorAll(".item").forEach(item => item.style.display = "flex");
-        // CLAVE: Llama a mostrarCategoría para restaurar la vista de una sola categoría
-        mostrarCategoria(0); // Vuelve a la primera categoría (o la que estaba)
+        mostrarCategoria(0); // Vuelve a la primera categoría
         inputBuscar.focus();
         e.preventDefault();
     }
@@ -375,7 +378,7 @@ window.addEventListener("keydown", e => {
              mostrarCategoria(indiceCat); 
              e.preventDefault();
         }
-        // Si está en la primera categoría y presiona UP, enfoca el buscador
+        // 🔑 CLAVE: Si está en la primera categoría y presiona UP, enfoca el buscador
         else if(indiceCat === 0){
             inputBuscar.focus();
             e.preventDefault();
@@ -387,7 +390,6 @@ window.addEventListener("keydown", e => {
             let nuevoFoco = null;
             let nextElement = (e.key === "ArrowRight") ? itemActual.nextElementSibling : itemActual.previousElementSibling;
 
-            // Busca el siguiente/anterior elemento que NO esté oculto
             while(nextElement){
                 if(nextElement.style.display !== 'none'){
                     nuevoFoco = nextElement;
