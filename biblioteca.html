@@ -31,9 +31,8 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
     margin-bottom: 20px; 
     display: none; /* OCULTA TODAS LAS CATEGORÍAS POR DEFECTO */
 }
-/* MUESTRA SOLO LA CATEGORÍA ACTIVA O LAS FILTRADAS */
-.categoria.active,
-.categoria[style*="display: block"] { 
+/* REGLA CLAVE: SOLO MUESTRA LA CATEGORÍA CON LA CLASE 'ACTIVE' */
+.categoria.active { 
     display: block !important; 
 }
 
@@ -63,7 +62,7 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
     background: #111;
     border-radius: 8px;
     cursor: pointer;
-    display: flex; /* Asegura que se muestre como flex (fila) por defecto */
+    display: flex;
     flex-direction: column;
     align-items: center;
     outline: none;
@@ -160,69 +159,20 @@ let indiceCat = 0;
 let currentUrl = "";
 
 // ====================================================================
-// Funciones de Inicialización
-// ====================================================================
-
-// Foco inmediato en el campo de búsqueda al cargar
-window.onload = () => {
-    inputBuscar.focus();
-};
-
-// Carga de Slider
-db.ref("Pingo/sliders").on("value", snap => {
-    sliderDiv.innerHTML = "";
-    const sliders = [];
-    snap.forEach(s => sliders.push(s.val()));
-    if (sliders.length > 0) {
-        let idx = 0;
-        const img = document.createElement("img");
-        img.src = sliders[idx];
-        sliderDiv.appendChild(img);
-        setInterval(() => { idx = (idx + 1) % sliders.length; img.src = sliders[idx]; }, 10000);
-    }
-});
-
-// Carga de Categorías
-db.ref("Ura/categorias").on("value", snap => {
-    categoriasDiv.innerHTML = "";
-    categoriasArray = [];
-    snap.forEach(catSnap => {
-        const cat = catSnap.val();
-        const catDiv = document.createElement("div");
-        catDiv.className = "categoria";
-        catDiv.setAttribute('data-category-name', cat.nombre.toLowerCase());
-        catDiv.innerHTML = `<h2>${cat.nombre}</h2><div class="items"></div>`;
-        const itemsDiv = catDiv.querySelector(".items");
-
-        if (cat.items) {
-            Object.entries(cat.items).reverse().forEach(([k, item]) => {
-                const itemDiv = document.createElement("div");
-                itemDiv.className = "item";
-                itemDiv.tabIndex = 0;
-                itemDiv.setAttribute('data-name', item.nombre.toLowerCase()); 
-                itemDiv.innerHTML = `<img src="${item.imagen}" alt="${item.nombre}"><span>${item.nombre}</span>`;
-                itemDiv.onclick = () => abrirModal(item);
-                itemsDiv.insertBefore(itemDiv, itemsDiv.firstChild);
-            });
-        }
-        categoriasArray.push(catDiv);
-        categoriasDiv.appendChild(catDiv);
-    });
-    indiceCat = 0;
-    mostrarCategoria(indiceCat);
-});
-
-// ====================================================================
 // Funciones de Interfaz y Modal
 // ====================================================================
 
 function mostrarCategoria(idx) {
-    // Si no hay filtro, asegúrate de que todas las categorías estén visibles antes de marcar la activa
-    if (inputBuscar.value.trim() === "") {
-        categoriasArray.forEach(cat => cat.style.display = 'block');
-    }
-    
+    // CLAVE: Asegura que TODAS estén ocultas antes de mostrar la activa
+    categoriasArray.forEach(c => c.style.display = 'none'); 
+
     categoriasArray.forEach((c, i) => { c.classList.toggle("active", i === idx); });
+    
+    // Muestra explícitamente la categoría activa
+    if (categoriasArray[idx]) {
+        categoriasArray[idx].style.display = 'block'; 
+    }
+
     const itemsContainer = categoriasArray[idx].querySelector(".items");
     const primerItemVisible = Array.from(itemsContainer.querySelectorAll(".item")).find(item => item.style.display !== 'none');
     
@@ -275,6 +225,54 @@ function centrarItemEnfocado(item) {
 }
 
 // ====================================================================
+// Carga de Datos (Slider y Categorías)
+// ====================================================================
+
+// Carga de Slider
+db.ref("Pingo/sliders").on("value", snap => {
+    sliderDiv.innerHTML = "";
+    const sliders = [];
+    snap.forEach(s => sliders.push(s.val()));
+    if (sliders.length > 0) {
+        let idx = 0;
+        const img = document.createElement("img");
+        img.src = sliders[idx];
+        sliderDiv.appendChild(img);
+        setInterval(() => { idx = (idx + 1) % sliders.length; img.src = sliders[idx]; }, 10000);
+    }
+});
+
+// Carga de Categorías
+db.ref("Ura/categorias").on("value", snap => {
+    categoriasDiv.innerHTML = "";
+    categoriasArray = [];
+    snap.forEach(catSnap => {
+        const cat = catSnap.val();
+        const catDiv = document.createElement("div");
+        catDiv.className = "categoria";
+        catDiv.setAttribute('data-category-name', cat.nombre.toLowerCase());
+        catDiv.innerHTML = `<h2>${cat.nombre}</h2><div class="items"></div>`;
+        const itemsDiv = catDiv.querySelector(".items");
+
+        if (cat.items) {
+            Object.entries(cat.items).reverse().forEach(([k, item]) => {
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "item";
+                itemDiv.tabIndex = 0;
+                itemDiv.setAttribute('data-name', item.nombre.toLowerCase()); 
+                itemDiv.innerHTML = `<img src="${item.imagen}" alt="${item.nombre}"><span>${item.nombre}</span>`;
+                itemDiv.onclick = () => abrirModal(item);
+                itemsDiv.insertBefore(itemDiv, itemsDiv.firstChild);
+            });
+        }
+        categoriasArray.push(catDiv);
+        categoriasDiv.appendChild(catDiv);
+    });
+    indiceCat = 0;
+    mostrarCategoria(indiceCat);
+});
+
+// ====================================================================
 // Lógica de Búsqueda en Tiempo Real y Precisión
 // ====================================================================
 
@@ -283,27 +281,29 @@ inputBuscar.addEventListener("keyup", () => {
     const allItems = document.querySelectorAll(".item");
     let primerEncontrado = null;
 
-    // Ocultar todas las categorías antes de aplicar el filtro
+    // CLAVE: Oculta todas las categorías antes de aplicar el filtro
     categoriasArray.forEach(cat => cat.style.display = 'none');
 
     allItems.forEach(item => {
         const itemName = item.getAttribute('data-name');
         
-        // Prioriza 'startsWith' (para la primera letra) y usa 'includes' como respaldo
         const isMatch = term === "" || itemName.startsWith(term) || itemName.includes(term);
 
         if (isMatch) {
             item.style.display = "flex";
             const parentCat = item.closest('.categoria');
-            if (parentCat) {
-                // Muestra la categoría y la marca como activa (solo en el contexto del filtro)
+            
+            // Si es el primer resultado, asegura que SOLO esta categoría se muestre
+            if (!primerEncontrado) {
                 parentCat.style.display = 'block'; 
                 categoriasArray.forEach(c => c.classList.remove("active"));
                 parentCat.classList.add("active");
                 indiceCat = categoriasArray.indexOf(parentCat); 
-            }
-            if (!primerEncontrado) {
                 primerEncontrado = item;
+            } else if(parentCat !== primerEncontrado.closest('.categoria')){
+                // Si ya encontramos el primer resultado en una categoría, 
+                // los resultados en OTRAS categorías se muestran, pero la categoría sigue oculta.
+                // Esto es clave para mantener la vista de una sola categoría.
             }
         } else {
             item.style.display = "none";
@@ -355,29 +355,28 @@ window.addEventListener("keydown", e => {
     if (e.key === "Escape") {
         inputBuscar.value = "";
         document.querySelectorAll(".item").forEach(item => item.style.display = "flex");
-        categoriasArray.forEach(cat => cat.style.display = 'block'); 
+        // CLAVE: Llama a mostrarCategoría para restaurar la vista de una sola categoría
+        mostrarCategoria(0); // Vuelve a la primera categoría (o la que estaba)
         inputBuscar.focus();
         e.preventDefault();
     }
     // Flecha Abajo (Navegación vertical)
     else if (e.key === "ArrowDown") {
-        const nextCatIndex = categoriasArray.findIndex((c, i) => i > indiceCat && c.style.display !== 'none');
-        if (nextCatIndex !== -1) {
-             indiceCat = nextCatIndex; 
+        if (indiceCat < categoriasArray.length - 1) {
+             indiceCat++; 
              mostrarCategoria(indiceCat); 
              e.preventDefault();
         }
     } 
     // Flecha Arriba (Navegación vertical)
     else if (e.key === "ArrowUp") {
-        const prevCatIndex = categoriasArray.slice(0, indiceCat).reverse().findIndex(c => c.style.display !== 'none');
-        if (prevCatIndex !== -1) {
-             indiceCat = indiceCat - (prevCatIndex + 1);
+        if (indiceCat > 0) {
+             indiceCat--;
              mostrarCategoria(indiceCat); 
              e.preventDefault();
         }
-        // Si está en la primera categoría visible y presiona UP, enfoca el buscador
-        else if(indiceCat === categoriasArray.findIndex(c => c.style.display !== 'none') || indiceCat === 0){
+        // Si está en la primera categoría y presiona UP, enfoca el buscador
+        else if(indiceCat === 0){
             inputBuscar.focus();
             e.preventDefault();
         }
