@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Box Zone TV - Foco en Reproducir</title>
 <style>
+/* Estilos CSS Corregidos para el Look Original */
 body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; overflow-x:hidden; }
 
 /* Slider fijo */
@@ -23,16 +24,18 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
     left: 0; 
     width: 100%; 
     z-index: 2; 
-    padding: 10px 20px 20px 20px; /* Más padding para dejar espacio bajo los items */
+    padding: 10px 20px 20px 20px;
     background: transparent; 
 }
 .categoria { 
-    margin-bottom: 20px; /* Separación entre categorías */
-    display: none; 
+    margin-bottom: 20px; 
+    display: none; /* OCULTA TODAS LAS CATEGORÍAS POR DEFECTO */
 }
-.categoria.active { display:block; }
-/* La clase 'display: block' se sobreescribe cuando hay un filtro activo para evitar que aparezcan categorías vacías */
-.categoria[style*="display: block"] { display: block !important; }
+/* MUESTRA SOLO LA CATEGORÍA ACTIVA O LAS FILTRADAS */
+.categoria.active,
+.categoria[style*="display: block"] { 
+    display: block !important; 
+}
 
 .categoria h2 { margin:10px 0; }
 
@@ -60,19 +63,19 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
     background: #111;
     border-radius: 8px;
     cursor: pointer;
-    display: flex;
+    display: flex; /* Asegura que se muestre como flex (fila) por defecto */
     flex-direction: column;
     align-items: center;
     outline: none;
     scroll-snap-align: start; 
-    transition: border 0.2s; /* Animación de foco */
+    transition: border 0.2s, transform 0.2s;
 }
 
 .item img { width:100%; height:200px; object-fit:cover; border-radius:8px; }
 .item span { margin-top:5px; text-align:center; font-size:14px; color:#fff; background:none; padding: 0 5px;}
 .item:focus { 
-    border:2px solid #ff0000; /* Borde rojo */
-    transform: scale(1.05); /* Ligeramente más grande al enfocar */
+    border:2px solid #ff0000; 
+    transform: scale(1.05); 
 }
 
 /* Modal */
@@ -150,7 +153,7 @@ const modalImage = document.getElementById("modal-image");
 const modalTitle = document.getElementById("modal-title");
 const modalDesc = document.getElementById("modal-desc");
 const btnReproducir = document.getElementById("btnReproducir");
-const btnBuscar = document.getElementById("btnBuscar"); // Para la navegación por teclado
+const btnBuscar = document.getElementById("btnBuscar");
 
 let categoriasArray = [];
 let indiceCat = 0;
@@ -160,7 +163,7 @@ let currentUrl = "";
 // Funciones de Inicialización
 // ====================================================================
 
-// 🚀 REQUERIMIENTO: Foco inmediato en el campo de búsqueda al cargar
+// Foco inmediato en el campo de búsqueda al cargar
 window.onload = () => {
     inputBuscar.focus();
 };
@@ -192,12 +195,10 @@ db.ref("Ura/categorias").on("value", snap => {
         const itemsDiv = catDiv.querySelector(".items");
 
         if (cat.items) {
-            // Se revierte la lista aquí, como en tu código original
             Object.entries(cat.items).reverse().forEach(([k, item]) => {
                 const itemDiv = document.createElement("div");
                 itemDiv.className = "item";
                 itemDiv.tabIndex = 0;
-                // Almacenamos el nombre en minúsculas para una búsqueda más rápida y precisa
                 itemDiv.setAttribute('data-name', item.nombre.toLowerCase()); 
                 itemDiv.innerHTML = `<img src="${item.imagen}" alt="${item.nombre}"><span>${item.nombre}</span>`;
                 itemDiv.onclick = () => abrirModal(item);
@@ -216,21 +217,19 @@ db.ref("Ura/categorias").on("value", snap => {
 // ====================================================================
 
 function mostrarCategoria(idx) {
-    // Asegura que todas las categorías se muestren si no hay filtro activo
+    // Si no hay filtro, asegúrate de que todas las categorías estén visibles antes de marcar la activa
     if (inputBuscar.value.trim() === "") {
         categoriasArray.forEach(cat => cat.style.display = 'block');
     }
     
     categoriasArray.forEach((c, i) => { c.classList.toggle("active", i === idx); });
     const itemsContainer = categoriasArray[idx].querySelector(".items");
-    // Encuentra el primer item VISIBLE (que no esté oculto por el filtro)
     const primerItemVisible = Array.from(itemsContainer.querySelectorAll(".item")).find(item => item.style.display !== 'none');
     
     if (primerItemVisible) {
         primerItemVisible.focus();
         centrarItemEnfocado(primerItemVisible);
     } else {
-        // Si la categoría activa está vacía por el filtro, enfoca la búsqueda.
         inputBuscar.focus();
     }
 }
@@ -242,7 +241,6 @@ function abrirModal(item) {
     currentUrl = item.url;
     modal.style.display = "flex";
 
-    // Enfoca el botón de Reproducir
     setTimeout(() => {
         btnReproducir.focus();
     }, 50);
@@ -251,13 +249,11 @@ function abrirModal(item) {
 function cerrarModal() {
     modal.style.display = "none";
     
-    // Devuelve el foco al último item que estaba activo, o al primer item visible
     const itemQueAbrio = document.activeElement;
     if (itemQueAbrio && itemQueAbrio.classList.contains('item') && itemQueAbrio.style.display !== 'none') {
         centrarItemEnfocado(itemQueAbrio);
         itemQueAbrio.focus();
     } else {
-        // Intenta enfocar el primer item visible de la categoría actual
         const primerItem = categoriasArray[indiceCat].querySelector(".item:not([style*='display: none'])");
         if(primerItem) primerItem.focus();
         else inputBuscar.focus();
@@ -279,33 +275,32 @@ function centrarItemEnfocado(item) {
 }
 
 // ====================================================================
-// 🔍 REQUERIMIENTO: Lógica de Búsqueda en Tiempo Real y Precisión
+// Lógica de Búsqueda en Tiempo Real y Precisión
 // ====================================================================
 
-// Aplicamos el evento keyup para la búsqueda en tiempo real
 inputBuscar.addEventListener("keyup", () => {
     const term = inputBuscar.value.toLowerCase().trim();
     const allItems = document.querySelectorAll(".item");
     let primerEncontrado = null;
 
-    // Ocultar todas las categorías para empezar
+    // Ocultar todas las categorías antes de aplicar el filtro
     categoriasArray.forEach(cat => cat.style.display = 'none');
 
     allItems.forEach(item => {
         const itemName = item.getAttribute('data-name');
         
-        // ** Filtro de precisión: prioriza `startsWith` (primeras letras) para la "lupa más precisa" **
+        // Prioriza 'startsWith' (para la primera letra) y usa 'includes' como respaldo
         const isMatch = term === "" || itemName.startsWith(term) || itemName.includes(term);
 
         if (isMatch) {
             item.style.display = "flex";
             const parentCat = item.closest('.categoria');
             if (parentCat) {
-                // Muestra la categoría del canal encontrado y la activa
+                // Muestra la categoría y la marca como activa (solo en el contexto del filtro)
                 parentCat.style.display = 'block'; 
                 categoriasArray.forEach(c => c.classList.remove("active"));
                 parentCat.classList.add("active");
-                indiceCat = categoriasArray.indexOf(parentCat); // Actualiza el índice
+                indiceCat = categoriasArray.indexOf(parentCat); 
             }
             if (!primerEncontrado) {
                 primerEncontrado = item;
@@ -315,12 +310,12 @@ inputBuscar.addEventListener("keyup", () => {
         }
     });
 
-    // REQUERIMIENTO: Foco en el primer resultado encontrado y centrado
+    // Foco en el primer resultado encontrado y centrado
     if (term !== "" && primerEncontrado) {
         primerEncontrado.focus();
         centrarItemEnfocado(primerEncontrado);
     } else if (term === "") {
-        // Si se borra la búsqueda, vuelve a la navegación normal de categorías
+        // Si se borra la búsqueda, vuelve a la navegación normal
         mostrarCategoria(indiceCat);
     }
 });
@@ -341,7 +336,6 @@ window.addEventListener("keydown", e => {
             }
             e.preventDefault();
         }
-        // Evita que las flechas muevan el carrusel mientras se escribe en la caja de texto
         return; 
     }
     
@@ -351,7 +345,6 @@ window.addEventListener("keydown", e => {
             cerrarModal();
             e.preventDefault();
         }
-        // Permite la navegación TAB entre Volver y Reproducir
         return; 
     }
 
@@ -361,42 +354,41 @@ window.addEventListener("keydown", e => {
     // ESCAPE: Limpia la búsqueda y vuelve a enfocar el buscador
     if (e.key === "Escape") {
         inputBuscar.value = "";
-        // Resetear todos los filtros
         document.querySelectorAll(".item").forEach(item => item.style.display = "flex");
         categoriasArray.forEach(cat => cat.style.display = 'block'); 
         inputBuscar.focus();
         e.preventDefault();
     }
-    // Flecha Arriba/Abajo para navegar categorías
+    // Flecha Abajo (Navegación vertical)
     else if (e.key === "ArrowDown") {
-        // Navegar a la siguiente categoría visible
         const nextCatIndex = categoriasArray.findIndex((c, i) => i > indiceCat && c.style.display !== 'none');
         if (nextCatIndex !== -1) {
              indiceCat = nextCatIndex; 
              mostrarCategoria(indiceCat); 
              e.preventDefault();
         }
-    } else if (e.key === "ArrowUp") {
-        // Navegar a la categoría visible anterior
+    } 
+    // Flecha Arriba (Navegación vertical)
+    else if (e.key === "ArrowUp") {
         const prevCatIndex = categoriasArray.slice(0, indiceCat).reverse().findIndex(c => c.style.display !== 'none');
         if (prevCatIndex !== -1) {
              indiceCat = indiceCat - (prevCatIndex + 1);
              mostrarCategoria(indiceCat); 
              e.preventDefault();
         }
-        // Si ya está en la primera categoría visible y se presiona UP, enfoca el buscador
-        else if(indiceCat === categoriasArray.findIndex(c => c.style.display !== 'none')){
+        // Si está en la primera categoría visible y presiona UP, enfoca el buscador
+        else if(indiceCat === categoriasArray.findIndex(c => c.style.display !== 'none') || indiceCat === 0){
             inputBuscar.focus();
             e.preventDefault();
         }
     }
-    // Flecha Derecha/Izquierda para desplazar el carrusel (items)
+    // Flecha Derecha/Izquierda (Desplazamiento horizontal de items)
     else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
         if (itemActual && itemActual.classList.contains('item')) {
             let nuevoFoco = null;
             let nextElement = (e.key === "ArrowRight") ? itemActual.nextElementSibling : itemActual.previousElementSibling;
 
-            // Busca el siguiente/anterior elemento que NO esté oculto por el filtro
+            // Busca el siguiente/anterior elemento que NO esté oculto
             while(nextElement){
                 if(nextElement.style.display !== 'none'){
                     nuevoFoco = nextElement;
@@ -417,7 +409,7 @@ window.addEventListener("keydown", e => {
     // ENTER/ESPACIO para abrir el modal
     else if (e.key === "Enter" || e.key === " "){
         if(itemActual && itemActual.classList.contains('item')){
-            itemActual.click(); // Simula el clic en el item
+            itemActual.click();
             e.preventDefault();
         }
     }
