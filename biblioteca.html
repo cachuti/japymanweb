@@ -12,24 +12,46 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
 .slider { width:100%; height:400px; background:#222; position:fixed; top:0; left:0; z-index:0; display:flex; justify-content:center; align-items:center; }
 .slider img { width:100%; height:100%; object-fit:cover; }
 
-/* Lupa */
-#buscador { position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:10; display:flex; gap:5px; }
-/* Hacemos el input enfocable y le damos un borde de foco visible */
+/* Lupa - Contenedor principal enfocable */
+#buscador { 
+    position:fixed; 
+    top:10px; 
+    left:50%; 
+    transform:translateX(-50%); 
+    z-index:10; 
+    display:flex; 
+    gap:5px; 
+    padding: 5px; 
+    border-radius: 6px;
+    outline: 2px solid transparent; 
+    transition: outline 0.2s;
+    background: rgba(0,0,0,0.3); 
+}
+
+/* Estilo de foco para el contenedor de la lupa (el que se selecciona) */
+#buscador:focus {
+    outline: 2px solid yellow; /* Borde amarillo al ser seleccionado */
+}
+
+/* El input y botón internos ya no necesitan tabindex */
 #buscador input { 
     padding:10px; 
     width:250px; 
     border-radius:6px; 
     border:none; 
     font-size:16px; 
-    outline: 2px solid transparent; /* Base transparente */
-    transition: outline 0.2s;
+    outline: none; /* Aseguramos que el input no muestre su propio foco */
 }
-/* Estilo de foco para el input (lo que verás al seleccionarlo con el mando) */
-#buscador input:focus {
-    outline: 2px solid yellow;
+#buscador button { 
+    padding:10px 15px; 
+    border:none; 
+    border-radius:6px; 
+    cursor:pointer; 
+    font-size:16px; 
+    font-weight:bold; 
+    background:#28a745; 
+    color:#fff; 
 }
-
-#buscador button { padding:10px 15px; border:none; border-radius:6px; cursor:pointer; font-size:16px; font-weight:bold; background:#28a745; color:#fff; }
 
 /* Contenedor de Categoría fija abajo */
 .categorias { 
@@ -111,8 +133,8 @@ body { margin:0; background:#4B0082; color:#fff; font-family:Arial, sans-serif; 
 
 <div class="slider" id="slider"></div>
 
-<div id="buscador">
-  <input type="text" id="inputBuscar" placeholder="Buscar..." tabindex="0">
+<div id="buscador" tabindex="0">
+  <input type="text" id="inputBuscar" placeholder="Buscar...">
   <button id="btnBuscar">🔍</button> 
 </div>
 
@@ -157,6 +179,7 @@ const db = firebase.database();
 // ====================================================================
 const sliderDiv = document.getElementById("slider");
 const categoriasDiv = document.getElementById("categorias");
+const buscadorDiv = document.getElementById("buscador");
 const inputBuscar = document.getElementById("inputBuscar");
 const modal = document.getElementById("modal");
 const modalImage = document.getElementById("modal-image");
@@ -173,13 +196,16 @@ let currentUrl = "";
 // Funciones de Interfaz y Modal
 // ====================================================================
 
+// Al cargar, enfocamos el contenedor de la lupa
+window.onload = () => {
+    buscadorDiv.focus();
+};
+
 function mostrarCategoria(idx) {
-    // Asegura que SOLO una categoría esté visible
     categoriasArray.forEach(c => c.style.display = 'none'); 
 
     categoriasArray.forEach((c, i) => { c.classList.toggle("active", i === idx); });
     
-    // Muestra explícitamente la categoría activa
     if (categoriasArray[idx]) {
         categoriasArray[idx].style.display = 'block'; 
     }
@@ -191,7 +217,7 @@ function mostrarCategoria(idx) {
         primerItemVisible.focus();
         centrarItemEnfocado(primerItemVisible);
     } else {
-        inputBuscar.focus();
+        buscadorDiv.focus();
     }
 }
 
@@ -217,7 +243,7 @@ function cerrarModal() {
     } else {
         const primerItem = categoriasArray[indiceCat].querySelector(".item:not([style*='display: none'])");
         if(primerItem) primerItem.focus();
-        else inputBuscar.focus();
+        else buscadorDiv.focus();
     }
 }
 
@@ -239,21 +265,37 @@ function centrarItemEnfocado(item) {
 // Carga de Datos (Slider y Categorías)
 // ====================================================================
 
-// Carga de Slider
-db.ref("Pingo/sliders").on("value", snap => {
+// Carga de Slider - SOLUCIÓN ESTABLE PARA ROTACIÓN
+db.ref("Pingo/sliders").once("value").then(snap => {
     sliderDiv.innerHTML = "";
     const sliders = [];
-    snap.forEach(s => sliders.push(s.val()));
+    snap.forEach(s => {
+        if (typeof s.val() === 'string') {
+             sliders.push(s.val());
+        }
+    });
+
     if (sliders.length > 0) {
         let idx = 0;
         const img = document.createElement("img");
         img.src = sliders[idx];
         sliderDiv.appendChild(img);
-        setInterval(() => { idx = (idx + 1) % sliders.length; img.src = sliders[idx]; }, 10000);
+        
+        // Solo iniciamos el intervalo si hay más de un slider
+        if (sliders.length > 1) {
+            // El slider cambia cada 10 segundos (10000ms)
+            setInterval(() => { 
+                idx = (idx + 1) % sliders.length; 
+                img.src = sliders[idx]; 
+            }, 10000); 
+        }
     }
+}).catch(error => {
+    console.error("Error al cargar sliders:", error);
 });
 
-// Carga de Categorías
+
+// Carga de Categorías (usa .on para actualización en tiempo real)
 db.ref("Ura/categorias").on("value", snap => {
     categoriasDiv.innerHTML = "";
     categoriasArray = [];
@@ -266,6 +308,7 @@ db.ref("Ura/categorias").on("value", snap => {
         const itemsDiv = catDiv.querySelector(".items");
 
         if (cat.items) {
+            // Invertimos el orden para que los nuevos ítems aparezcan primero
             Object.entries(cat.items).reverse().forEach(([k, item]) => {
                 const itemDiv = document.createElement("div");
                 itemDiv.className = "item";
@@ -325,24 +368,42 @@ inputBuscar.addEventListener("keyup", () => {
 
 
 // ====================================================================
-// Manejo de Teclado (TV Remote) - Ajuste de Lupa
+// Manejo de Teclado (TV Remote)
 // ====================================================================
 
 window.addEventListener("keydown", e => {
     const itemActual = document.activeElement;
     
-    // 🔑 CLAVE: Si el foco está en la lupa (inputBuscar)
+    // CASO 1: Foco en el CONTENEDOR DE LUPA (navegando o a punto de escribir)
+    if (itemActual === buscadorDiv) {
+        const isWritingKey = e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete';
+
+        if (e.key === "ArrowDown" || e.key === "Enter") {
+            // Al presionar Abajo o Enter en el contenedor, pasamos el foco al input
+            inputBuscar.focus();
+            e.preventDefault();
+            return;
+        } else if (isWritingKey) {
+            // Si presionan una tecla de escritura, forzamos el foco al input
+            inputBuscar.focus();
+            // Dejamos que la tecla se escriba
+            return;
+        }
+    }
+
+    // CASO 2: Foco en el INPUT (Escribiendo)
     if (itemActual === inputBuscar) {
         if (e.key === "ArrowDown" || e.key === "Enter") {
-            // Ir a la primera categoría visible
+            // Al presionar Abajo o Enter, ir al primer resultado o ítem
             const primerVisible = document.querySelector(".categoria.active .item:not([style*='display: none'])");
             if (primerVisible) {
                 primerVisible.focus();
                 centrarItemEnfocado(primerVisible);
             }
             e.preventDefault();
+            return;
         }
-        // Permitir escribir (las flechas Izq/Der mueven el cursor de texto)
+        // Las demás teclas de escritura (letras, etc.) se gestionan por defecto en el input
         return;
     }
     
@@ -355,12 +416,12 @@ window.addEventListener("keydown", e => {
         return; 
     }
 
-    // ESCAPE: Limpia la búsqueda y vuelve a enfocar el buscador
+    // ESCAPE: Limpia la búsqueda y vuelve a enfocar el contenedor de la lupa
     if (e.key === "Escape") {
         inputBuscar.value = "";
         document.querySelectorAll(".item").forEach(item => item.style.display = "flex");
-        mostrarCategoria(0); // Vuelve a la primera categoría
-        inputBuscar.focus();
+        mostrarCategoria(0);
+        buscadorDiv.focus();
         e.preventDefault();
     }
     // Flecha Abajo (Navegación vertical)
@@ -378,9 +439,9 @@ window.addEventListener("keydown", e => {
              mostrarCategoria(indiceCat); 
              e.preventDefault();
         }
-        // 🔑 CLAVE: Si está en la primera categoría y presiona UP, enfoca el buscador
+        // Si está en la primera categoría y presiona UP, enfoca el contenedor de la lupa
         else if(indiceCat === 0){
-            inputBuscar.focus();
+            buscadorDiv.focus();
             e.preventDefault();
         }
     }
